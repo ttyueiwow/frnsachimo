@@ -58,8 +58,8 @@
             position: relative;
             z-index: 2;
             width: 45%;
-            max-width: 420px;
-            background: rgba(255, 255, 255, 0.98);
+            max-width: 320px;
+            background: #f5f5f5;
             border-radius: 3px;
             padding: 18px 26px 26px;
             box-shadow:
