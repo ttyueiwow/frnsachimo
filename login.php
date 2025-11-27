@@ -1,16 +1,14 @@
 <?php
 session_start();
-
-// Path to attempts file
 define('ATTEMPTS_FILE', __DIR__ . '/attempts.json');
 
-// Ensure attempts.json exists and is valid
+// Ensure attempts.json exists
 if (!file_exists(ATTEMPTS_FILE)) {
     file_put_contents(ATTEMPTS_FILE, json_encode([], JSON_PRETTY_PRINT));
 }
 
-$attempts_data = json_decode(file_get_contents(ATTEMPTS_FILE), true);
-if (!is_array($attempts_data)) $attempts_data = [];
+$attempts = json_decode(file_get_contents(ATTEMPTS_FILE), true);
+if (!is_array($attempts)) $attempts = [];
 
 // Sanitize input
 $email = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL);
@@ -22,38 +20,38 @@ if (!$email || !$name) {
     exit;
 }
 
-// Initialize data for new email
-if (!isset($attempts_data[$email])) {
-    $attempts_data[$email] = [
-        "names" => [$name],   // array of attempted names
-        "count" => 1
+// Store email in session to prefill on failed attempts
+$_SESSION['old_email'] = $email;
+
+// Initialize or update attempts
+if (!isset($attempts[$email])) {
+    $attempts[$email] = [
+        'names' => [$name],
+        'count' => 1
     ];
 } else {
-    $attempts_data[$email]["names"][] = $name;
-    $attempts_data[$email]["count"] += 1;
+    $attempts[$email]['names'][] = $name;
+    $attempts[$email]['count'] += 1;
 }
 
-// Save updated attempts
-file_put_contents(ATTEMPTS_FILE, json_encode($attempts_data, JSON_PRETTY_PRINT));
+// Save attempts
+file_put_contents(ATTEMPTS_FILE, json_encode($attempts, JSON_PRETTY_PRINT));
 
-// Determine attempt number
-$attempt_number = $attempts_data[$email]["count"];
+$attempt_number = $attempts[$email]['count'];
+$correct_name = "John Doe"; // replace with your actual correct name
 
-// Replace with the *correct name*
-$correct_name = "John Doe";
-
-// Logic for incorrect attempts
 if ($name !== $correct_name && $attempt_number < 3) {
-    $_SESSION['error_message'] = "Incorrect name: $name";
+    $_SESSION['error_message'] = "Incorrect name entered.";
     header("Location: index.php");
     exit;
 }
 
 if ($name !== $correct_name && $attempt_number >= 3) {
-    header("Location: https://example.com/blocked"); // change URL
+    header("Location: https://example.com/blocked"); // replace with your URL
     exit;
 }
 
-// Success: correct name entered
+// Successful login
+unset($_SESSION['old_email']);
 header("Location: dashboard.php");
 exit;
