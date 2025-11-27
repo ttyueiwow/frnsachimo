@@ -16,7 +16,7 @@ function save_attempts($attempts) {
 }
 
 $email = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL);
-$name = filter_input(INPUT_POST, 'name', FILTER_SANITIZE_STRING);
+$name = filter_input(INPUT_POST, 'name', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
 
 if (!$email || !$name) {
     $_SESSION['error_message'] = "Invalid input.";
