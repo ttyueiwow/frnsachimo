@@ -1,22 +1,20 @@
 <?php
 session_start();
 
-// Path to store attempts
 define('ATTEMPTS_FILE', __DIR__ . '/attempts.json');
 
-// Function to load attempts
+// Load attempts
 function load_attempts() {
     if (!file_exists(ATTEMPTS_FILE)) return [];
     $json = file_get_contents(ATTEMPTS_FILE);
     return json_decode($json, true) ?: [];
 }
 
-// Function to save attempts
+// Save attempts
 function save_attempts($attempts) {
     file_put_contents(ATTEMPTS_FILE, json_encode($attempts, JSON_PRETTY_PRINT));
 }
 
-// Get form input
 $email = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL);
 $name = filter_input(INPUT_POST, 'name', FILTER_SANITIZE_STRING);
 
@@ -26,20 +24,26 @@ if (!$email || !$name) {
     exit;
 }
 
-// Load previous attempts
 $attempts = load_attempts();
 
-// Record attempt (grouped by email)
+// Initialize attempt data if first time
 if (!isset($attempts[$email])) {
     $attempts[$email] = ['name' => $name, 'count' => 1];
 } else {
     $attempts[$email]['count'] += 1;
 }
 
-// Save back
+// Save attempts
 save_attempts($attempts);
 
-// Set an error for demonstration (or replace with actual login validation)
-$_SESSION['error_message'] = "Login failed for $email.";
-header('Location: index.php');
-exit;
+// Logic for incorrect name display and redirection
+if ($attempts[$email]['count'] >= 3) {
+    // Third attempt → redirect
+    header('Location: https://example.com/locked'); // change URL as needed
+    exit;
+} else {
+    // First and second attempt → show incorrect name message
+    $_SESSION['error_message'] = "Incorrect name entered. Attempt " . $attempts[$email]['count'] . " of 3.";
+    header('Location: index.php');
+    exit;
+}
