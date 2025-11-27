@@ -69,8 +69,8 @@
 
         /* PDF icon */
         .doc-icon {
-            width: 40px;
-            height: 46px;
+            width: 34px;
+            height: 40px;
             border-radius: 8px;
             background: #B80000;
             display: flex;
@@ -82,7 +82,7 @@
         .doc-icon-pdf {
             font-weight: 700;
             color: #fff;
-            font-size: 13px;
+            font-size: 12px;
         }
 
         /* Titles */
