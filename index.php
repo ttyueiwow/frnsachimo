@@ -57,11 +57,11 @@
         .login-card {
             position: relative;
             z-index: 2;
-            width: 55%;
+            width: 45%;
             max-width: 420px;
             background: rgba(255, 255, 255, 0.98);
             border-radius: 3px;
-            padding: 8px 26px 26px;
+            padding: 18px 26px 26px;
             box-shadow:
                 0 20px 40px rgba(0, 0, 0, 0.35),
                 0 0 0 1px rgba(0, 0, 0, 0.05);
