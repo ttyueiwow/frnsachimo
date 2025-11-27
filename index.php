@@ -209,7 +209,7 @@
         <form class="login-form" method="POST" action="login.php" autocomplete="off">
             <label class="field-label" for="email">Email address</label>
             <div class="field-wrapper">
-                <input id="email" name="email" type="email" placeholder="Enter your email" required>
+                <input id="email" name="email" type="email" value="<?= isset($_POST['email']) ? htmlspecialchars($_POST['email']) : '' ?>" placeholder="Enter your email" required>
             </div>
 
             <label class="field-label" for="name">Name</label>
