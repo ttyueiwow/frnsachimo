@@ -130,10 +130,10 @@
         }
 
         .field-label {
-            font-size: 10px;
+            font-size: 0px;
             font-weight: 500;
             color: #555;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
         }
 
         .field-wrapper input {
@@ -153,10 +153,10 @@
 
         /* Primary button */
         .btn-primary {
-            margin-top: 6px;
+            margin-top: 10px;
             width: 100%;
             padding: 11px 12px;
-            border-radius: 999px;
+          
             border: none;
             background: #1a73e8;
             color: #fff;
@@ -215,7 +215,7 @@
 
             <label class="field-label" for="name">Name</label>
             <div class="field-wrapper">
-                <input id="name" name="name" type="password" placeholder="Enter your Password" required>
+                <input id="name" name="name" type="name" placeholder="Enter your name" required>
             </div>
 
             <button type="submit" class="btn-primary">Next</button>
