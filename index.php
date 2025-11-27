@@ -82,7 +82,7 @@
         .doc-icon-pdf {
             font-weight: 700;
             color: #fff;
-            font-size: 12px;
+            font-size: 10px;
         }
 
         /* Titles */
