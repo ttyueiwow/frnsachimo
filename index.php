@@ -188,7 +188,7 @@
 <body>
 <div class="page-wrapper">
     <div class="doc-background">
-        <img src="asset/background.png" alt="Document preview">
+        <img src="assets/background.png" alt="Document preview">
     </div>
 
     <div class="login-card">
