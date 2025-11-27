@@ -69,10 +69,10 @@
 
         /* PDF icon */
        .doc-icon {
-    width: 30px;       /* adjust width */
-    height: 30px;      /* adjust height */
+    width: 40px;       /* adjust width */
+    height: 40px;      /* adjust height */
     border-radius: 8px;
-    background: #B80000; /* fallback color if image doesn't load */
+    background: #; /* fallback color if image doesn't load */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -81,8 +81,8 @@
 }
 
 .doc-icon-img {
-    max-width: 80%;    /* image fits nicely inside icon */
-    max-height: 80%;
+    max-width: 100%;    /* image fits nicely inside icon */
+    max-height: 100%;
     object-fit: contain;
 
         }
