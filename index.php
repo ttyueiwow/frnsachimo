@@ -69,8 +69,8 @@
 
         /* PDF icon */
        .doc-icon {
-    width: 50px;       /* adjust width */
-    height: 50px;      /* adjust height */
+    width: 30px;       /* adjust width */
+    height: 30px;      /* adjust height */
     border-radius: 8px;
     background: #B80000; /* fallback color if image doesn't load */
     display: flex;
