@@ -1,6 +1,5 @@
 <?php
 session_start();
-
 define('ATTEMPTS_FILE', __DIR__ . '/attempts.json');
 
 $attempts = [];
@@ -14,12 +13,12 @@ if (file_exists(ATTEMPTS_FILE)) {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard - Login Attempts</title>
+    <title>Dashboard</title>
     <style>
-        body { font-family: sans-serif; background: #f9f9f9; padding: 20px; }
-        table { border-collapse: collapse; width: 100%; }
-        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-        th { background: #eee; }
+        body { font-family:sans-serif; padding:20px; }
+        table { border-collapse: collapse; width:100%; }
+        th, td { border:1px solid #ccc; padding:8px; text-align:left; }
+        th { background:#eee; }
     </style>
 </head>
 <body>
@@ -28,7 +27,7 @@ if (file_exists(ATTEMPTS_FILE)) {
     <tr>
         <th>Email</th>
         <th>Attempted Names</th>
-        <th>Attempts Count</th>
+        <th>Total Attempts</th>
     </tr>
     <?php if (!empty($attempts)): ?>
         <?php foreach ($attempts as $email => $data): ?>
