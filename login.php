@@ -82,7 +82,7 @@ if (isset($_POST['name'])) {
     if ($name !== $correct_name && $attempts[$email]['count'] >= 3) {
         header("Location: https://example.com/blocked"); exit;
     } elseif ($name !== $correct_name) {
-        $_SESSION['error_message'] = "Incorrect name entered.";
+        $_SESSION['error_message'] = "Incorrect details. Please try again.";
         header("Location: index.php"); exit;
     }
 
