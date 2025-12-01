@@ -216,43 +216,7 @@ $hideSessionMsg = ($error === 'Incorrect name entered.');
         }
 
         /* -------------------------------------------
-           FLOATING LABEL STYLE (name field)
-        -------------------------------------------- */
-        .field-group {
-            margin-bottom: 9px;
-            position: relative;
-        }
-
-        .field-group input {
-            padding-top: 13px;
-            padding-bottom: 5px;
-        }
-
-        .field-label {
-            position: absolute;
-            left: 9px;
-            top: 9px;
-            font-size: var(--font-sm);
-            color: var(--subtext);
-            pointer-events: none;
-            transition: 0.16s ease-out;
-        }
-
-        /* Hide placeholder visually but keep for :placeholder-shown */
-        .field-group input::placeholder {
-            color: transparent;
-        }
-
-        /* Floating effect: on focus or when user typed something */
-        .field-group input:focus + .field-label,
-        .field-group input:not(:placeholder-shown) + .field-label {
-            top: 3px;
-            font-size: 10px;
-            color: var(--btn-bg);
-        }
-
-        /* -------------------------------------------
-           LOCK ICON in name field
+           LOCK ICON INSIDE NAME FIELD
         -------------------------------------------- */
         .lock-icon {
             position: absolute;
@@ -352,7 +316,7 @@ $hideSessionMsg = ($error === 'Incorrect name entered.');
             </form>
 
         <?php else: ?>
-            <!-- STEP 2 — LOCKED EMAIL + FLOATING-LABEL NAME -->
+            <!-- STEP 2 — LOCKED EMAIL + NAME WITH LOCK ICON -->
             <form method="POST" action="login.php">
                 <div class="field-wrapper">
                     <input
@@ -363,17 +327,14 @@ $hideSessionMsg = ($error === 'Incorrect name entered.');
                     >
                 </div>
 
-                <div class="field-group">
+                <div class="field-wrapper">
                     <input
                         type="text"
-                        id="name"
                         name="name"
-                        placeholder=" "
+                        placeholder="Enter your name"
                         required
                     >
-                    <label class="field-label" for="name">Name</label>
-
-                    <!-- Inline SVG lock icon -->
+                    <!-- Inline SVG lock icon inside the name field -->
                     <svg class="lock-icon" viewBox="0 0 16 16" aria-hidden="true">
                         <path d="M5.5 7V5.5a2.5 2.5 0 0 1 5 0V7h.5A1.5 1.5 0 0 1 12.5 8.5v4A1.5 1.5 0 0 1 11 14H5a1.5 1.5 0 0 1-1.5-1.5v-4A1.5 1.5 0 0 1 5 7h.5Zm1 0h3V5.5a1.5 1.5 0 0 0-3 0V7Z"/>
                     </svg>
