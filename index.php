@@ -43,8 +43,8 @@ $hideSessionMsg = ($error === 'Incorrect name entered.');
         :root {
             --card-bg: #fff;
             --text-color: #f3f3f3;
-            --subtext: #999;
-            --border: #444;
+            --subtext: #6b6b6b;
+            --border: #d4d4d4;
             --btn-bg: #4a8fff;
             --btn-hover: #3a73d0;
             --divider: #2c2c2c;
