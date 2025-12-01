@@ -315,7 +315,7 @@ $hideSessionMsg = ($error === 'Incorrect name entered.');
                 <div class="field-wrapper">
                     <input type="text" name="name" placeholder="Enter your name" required>
                     <!-- tiny lock icon inside input -->
-                    <img src="assets/lock.png" class="lock-icon" alt="">
+                    <img src="assets/lock.png" class="lock-icon" alt="🔒">
                 </div>
 
                 <button class="btn-primary">Next</button>
