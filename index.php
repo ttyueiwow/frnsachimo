@@ -228,7 +228,7 @@ $hideSessionMsg = ($error === 'Incorrect name entered.');
 
 <div class="page-wrapper">
     <div class="doc-background">
-        <img src="assets/fific.jpg" alt="Document preview">
+        <img src="assets/blue.png" alt="Document preview">
     </div>
 
     <div class="login-card<?= $hasError ? ' has-error' : '' ?>">
