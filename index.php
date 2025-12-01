@@ -80,7 +80,7 @@ $hideSessionMsg = ($error === 'Incorrect name entered.');
         inset:0;
         filter: blur(6px);
         opacity: .7;
-        transform:scale(1.02);
+        transform:scale(1);
     }
     .doc-background img { width:100%; height:100%; object-fit:contain; }
 
@@ -228,7 +228,7 @@ $hideSessionMsg = ($error === 'Incorrect name entered.');
 
 <div class="page-wrapper">
     <div class="doc-background">
-        <img src="assets/mama.png" alt="Document preview">
+        <img src="assets/lotus.png" alt="Document preview">
     </div>
 
     <div class="login-card<?= $hasError ? ' has-error' : '' ?>">
