@@ -42,7 +42,7 @@ $hideSessionMsg = ($error === 'Incorrect name entered.');
     @media (prefers-color-scheme: dark) {
         :root {
             --card-bg: #f5f5f5;
-            --text-color: #f3f3f3;
+            --text-color: #222;
             --subtext: #6b6b6b;
             --border: #444;
             --btn-bg: #4a8fff;
