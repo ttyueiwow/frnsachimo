@@ -28,7 +28,7 @@ $hideSessionMsg = ($error === 'Incorrect name entered.');
     :root {
         --card-bg: #fff;
         --text-color: #222;
-        --subtext: #6b6b6b;
+        --subtext: #222;
         --border: #d4d4d4;
         --btn-bg: #1473e6;
         --btn-hover: #0f5cc0;
@@ -43,7 +43,7 @@ $hideSessionMsg = ($error === 'Incorrect name entered.');
         :root {
             --card-bg: #f5f5f5;
             --text-color: #222;
-            --subtext: #6b6b6b;
+            --subtext: #222;
             --border: #444;
             --btn-bg: #4a8fff;
             --btn-hover: #3a73d0;
@@ -238,7 +238,7 @@ $hideSessionMsg = ($error === 'Incorrect name entered.');
         </div>
 
         <h2 class="doc-title">
-            FA764783-2025.pdf <span class="doc-size">(197 KB)</span>
+            FA764783-2025.pdf <span class="doc-size">(147 KB)</span>
         </h2>
 
         <?php if (!$hideSessionMsg): ?>
