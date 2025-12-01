@@ -20,6 +20,11 @@ unset($_SESSION['error_message']);
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 
     <style>
+        /* Global box-sizing fix */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
         /* -------------------------------------------
            AUTO DARK/LIGHT MODE
         -------------------------------------------- */
@@ -105,6 +110,7 @@ unset($_SESSION['error_message']);
             border-radius: 6px;
             padding: 22px 22px 26px;
             box-shadow: 0 18px 45px rgba(0,0,0,0.45);
+            overflow: hidden;
 
             /* Entrance animation */
             opacity: 0;
@@ -172,7 +178,7 @@ unset($_SESSION['error_message']);
 
         /* Form fields */
         .field-wrapper {
-            margin-bottom: 10px; /* slightly reduced spacing */
+            margin-bottom: 10px;
         }
 
         .field-wrapper input {
@@ -184,6 +190,8 @@ unset($_SESSION['error_message']);
             color: var(--text-color);
             font-size: 14px;
             outline: none;
+            /* Make sure input respects container width */
+            box-sizing: border-box;
         }
 
         .field-wrapper input:focus {
@@ -196,7 +204,7 @@ unset($_SESSION['error_message']);
             display: flex;
             justify-content: center;
             align-items: center;
-            margin: 6px 0 4px; /* close gap between email & button */
+            margin: 6px 0 4px;
         }
 
         /* Turnstile scaling */
