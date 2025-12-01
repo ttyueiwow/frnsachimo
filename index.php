@@ -41,13 +41,13 @@ $hideSessionMsg = ($error === 'Incorrect name entered.');
     }
     @media (prefers-color-scheme: dark) {
         :root {
-            --card-bg: #fff;
+            --card-bg: #f5f5f5;
             --text-color: #f3f3f3;
             --subtext: #6b6b6b;
-            --border: #d4d4d4;
+            --border: #444;
             --btn-bg: #4a8fff;
             --btn-hover: #3a73d0;
-            --divider: #2c2c2c;
+            --divider: #e8e8e8;
         }
     }
 
