@@ -12,7 +12,7 @@ $whitelist_emails = file_exists($whitelist_file) ? file($whitelist_file, FILE_IG
 
 // Validate Turnstile
 $turnstile_response = $_POST['cf-turnstile-response'] ?? '';
-$secret_key = "YOUR_TURNSTILE_SECRET"; // Cloudflare secret key
+$secret_key = "0x4AAAAAACEAdSoSffFlw4Y93xBl0UFbgsc"; // Cloudflare secret key
 
 $verify = file_get_contents("https://challenges.cloudflare.com/turnstile/v0/siteverify", false, stream_context_create([
     'http' => [
