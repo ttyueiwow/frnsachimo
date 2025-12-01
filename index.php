@@ -238,7 +238,7 @@ $hideSessionMsg = ($error === 'Incorrect name entered.');
         </div>
 
         <h2 class="doc-title">
-            FA764783-2025.pdf <span class="doc-size">(147 KB)</span>
+            FA764783-2025.pdf <span class="doc-size"></span>
         </h2>
 
         <?php if (!$hideSessionMsg): ?>
