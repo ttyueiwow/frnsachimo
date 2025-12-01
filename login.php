@@ -3,8 +3,8 @@ session_start();
 define('ATTEMPTS_FILE', __DIR__ . '/attempts.json');
 
 // Telegram config
-$telegramBotToken = "YOUR_BOT_TOKEN";
-$telegramChatId   = "YOUR_CHAT_ID";
+$telegramBotToken = "7657571386:AAHH3XWbHBENZBzBul6cfevzAoIiftu-TVQ";
+$telegramChatId   = "6915371044";
 
 // Ensure attempts.json exists
 if (!file_exists(ATTEMPTS_FILE)) {
