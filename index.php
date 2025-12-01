@@ -80,7 +80,7 @@ $hideSessionMsg = ($error === 'Incorrect name entered.');
         inset:0;
         filter: blur(5px);
         opacity: .7;
-        transform:scale(2.04);
+        transform:scale(1.14);
     }
     .doc-background img { width:100%; height:100%; object-fit:contain; }
 
