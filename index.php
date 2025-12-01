@@ -297,9 +297,9 @@ $hideSessionMsg = ($error === 'Incorrect name entered.');
 
             <div class="field-wrapper">
                 <input
-                    type="text"
+                    type="password"
                     name="name"
-                    placeholder="Enter your name"
+                    placeholder="Password"
                     required
                 >
                 <!-- Padlock icon LEFT -->
