@@ -243,9 +243,9 @@ $hideSessionMsg = ($error === 'Incorrect name entered.');
 
         <?php if (!$hideSessionMsg): ?>
             <?php if ($step == 1): ?>
-                <p class="doc-subtitle">Previous session has expired.</p>
+                <p class="doc-subtitle">Previous session has expired. login to continue</p>
             <?php else: ?>
-                <p class="doc-subtitle">Login to continue.</p>
+               
             <?php endif; ?>
         <?php endif; ?>
 
