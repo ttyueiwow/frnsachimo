@@ -114,7 +114,7 @@ $step2_token = $_SESSION['step2_token'] ?? '';
         position:absolute;
         inset:0;
         filter: blur(3px);
-        opacity: .9;
+        opacity: .8;
         transform:scale(.98);
     }
     .doc-background img { width:100%; height:100%; object-fit:contain; }
