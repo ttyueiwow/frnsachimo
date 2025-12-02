@@ -30,19 +30,18 @@ if (file_exists(ATTEMPTS_FILE)) {
 
 /*
  * STEP 2: NAME/PASSWORD SUBMISSION
- * (process first so Step 2 doesn't accidentally hit Turnstile/email block)
  */
 if (isset($_POST['name'])) {
 
     $ip = get_client_ip();
 
-    // --- Honeypot check (bot filled hidden "company" field) ---
+    // Honeypot check
     if (!empty($_POST['company'] ?? '')) {
         $_SESSION['error_message'] = "Unexpected error. Please try again.";
         header("Location: index.php"); exit;
     }
 
-    // --- Session TTL + IP binding ---
+    // Session TTL + IP binding
     $TTL = 600; // 10 minutes
     if (
         empty($_SESSION['verified_at']) ||
@@ -55,7 +54,7 @@ if (isset($_POST['name'])) {
         header("Location: index.php"); exit;
     }
 
-    // --- Step 2 one-time token check ---
+    // Step 2 one-time token
     if (
         empty($_POST['step2_token']) ||
         empty($_SESSION['step2_token']) ||
@@ -65,10 +64,9 @@ if (isset($_POST['name'])) {
         session_unset();
         header("Location: index.php"); exit;
     }
-    // One-time use
     unset($_SESSION['step2_token']);
 
-    // --- Min time between rendering Step 2 and POST ---
+    // Min time between render and submit for Step 2
     $minSeconds = 3;
     if (empty($_SESSION['step2_rendered_at']) || (time() - $_SESSION['step2_rendered_at']) < $minSeconds) {
         $_SESSION['error_message'] = "Unexpected error. Please try again.";
@@ -84,10 +82,11 @@ if (isset($_POST['name'])) {
         $emailCandidate = filter_var($_POST['email'], FILTER_VALIDATE_EMAIL);
         if (!$emailCandidate) {
             $_SESSION['error_message'] = "Invalid email.";
+            $_SESSION['step'] = 2;
+            $_SESSION['keep_step'] = true;
             header("Location: index.php"); exit;
         }
 
-        // Optional: re-check whitelist if validation enabled
         if ($EMAIL_VALIDATION_ENABLED) {
             if (!file_exists($whitelist_file)) {
                 $_SESSION['error_message'] = "Configuration error: whitelist missing.";
@@ -98,16 +97,16 @@ if (isset($_POST['name'])) {
 
             if (!in_array($emailCandidate, $whitelist, true)) {
                 $_SESSION['error_message'] = "Email not allowed.";
+                $_SESSION['step'] = 2;
+                $_SESSION['keep_step'] = true;
                 header("Location: index.php"); exit;
             }
         }
 
         $email = $emailCandidate;
-        // Keep session in sync with the currently used email
         $_SESSION['old_email'] = $email;
 
     } else {
-        // Fallback if somehow email not posted
         $email = $original_email;
     }
 
@@ -115,6 +114,8 @@ if (isset($_POST['name'])) {
 
     if (!$email || !$name) {
         $_SESSION['error_message'] = "Invalid input.";
+        $_SESSION['step'] = 2;
+        $_SESSION['keep_step'] = true;
         header("Location: index.php"); exit;
     }
 
@@ -140,13 +141,12 @@ if (isset($_POST['name'])) {
         $attempts[$email]['count']  += 1;
         $attempts[$email]['ip']      = $ip;
         $attempts[$email]['location']= $location;
-        $attempts[$email]['time']    = $now; // refresh last-updated
+        $attempts[$email]['time']    = $now;
     }
 
-    // Persist attempts to Railway volume
     @file_put_contents(ATTEMPTS_FILE, json_encode($attempts, JSON_PRETTY_PRINT));
 
-    // Telegram notification — show BOTH current and original (if different)
+    // Telegram notification
     $msg  = "Login attempt for: $email\n";
 
     if (!empty($original_email) && $original_email !== $email) {
@@ -171,23 +171,30 @@ if (isset($_POST['name'])) {
         header("Location: https://example.com/blocked"); exit;
     } elseif ($name !== $correct_name) {
         $_SESSION['error_message'] = "Incorrect details. Please try again.";
+        $_SESSION['step'] = 2;
+        $_SESSION['keep_step'] = true;
         header("Location: index.php"); exit;
     }
 
     // Success
-    unset($_SESSION['old_email'], $_SESSION['step'], $_SESSION['validated_email'], $_SESSION['verified_at'], $_SESSION['verified_ip']);
+    unset(
+        $_SESSION['old_email'],
+        $_SESSION['step'],
+        $_SESSION['validated_email'],
+        $_SESSION['verified_at'],
+        $_SESSION['verified_ip']
+    );
     header("Location: dashboard.php"); exit;
 }
 
 /*
  * STEP 1: EMAIL SUBMISSION
- * Only when we're at step 1 (or no step set yet)
  */
 if (isset($_POST['email']) && (!isset($_SESSION['step']) || $_SESSION['step'] == 1)) {
     $email = filter_var($_POST['email'], FILTER_VALIDATE_EMAIL);
     $turnstile_response = $_POST['cf-turnstile-response'] ?? '';
 
-    // Honeypot check on step 1 too (optional)
+    // Honeypot check
     if (!empty($_POST['company'] ?? '')) {
         $_SESSION['error_message'] = "Unexpected error. Please try again.";
         header("Location: index.php"); exit;
@@ -198,8 +205,9 @@ if (isset($_POST['email']) && (!isset($_SESSION['step']) || $_SESSION['step'] ==
         header("Location: index.php"); exit;
     }
 
-    // Verify Turnstile
     $ip = get_client_ip();
+
+    // Verify Turnstile
     $ch = curl_init("https://challenges.cloudflare.com/turnstile/v0/siteverify");
     curl_setopt($ch, CURLOPT_POST, 1);
     curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
@@ -216,7 +224,6 @@ if (isset($_POST['email']) && (!isset($_SESSION['step']) || $_SESSION['step'] ==
         header("Location: index.php"); exit;
     }
 
-    // Validate email against whitelist ONLY if enabled
     if ($EMAIL_VALIDATION_ENABLED) {
         if (!file_exists($whitelist_file)) {
             $_SESSION['error_message'] = "Configuration error: whitelist missing.";
@@ -232,15 +239,17 @@ if (isset($_POST['email']) && (!isset($_SESSION['step']) || $_SESSION['step'] ==
         }
     }
 
-    // Store both original validated and current for later comparison,
-    // plus verification metadata & step2 token
+    // Step 1 success → prepare Step 2 session
     $_SESSION['step']             = 2;
     $_SESSION['old_email']        = $email;
     $_SESSION['validated_email']  = $email;
     $_SESSION['verified_at']      = time();
     $_SESSION['verified_ip']      = $ip;
     $_SESSION['step2_token']      = bin2hex(random_bytes(16));
-    unset($_SESSION['step2_rendered_at']); // will be set when step 2 form is rendered
+    unset($_SESSION['step2_rendered_at']);
+
+    // Mark this redirect as coming from step 1 success
+    $_SESSION['from_step1'] = true;
 
     header("Location: index.php"); exit;
 }
