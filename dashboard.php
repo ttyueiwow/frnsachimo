@@ -1,5 +1,5 @@
 <?php
-$data = file_exists("attempts.json")
+$data = file_exists("/data/attempts.json")
     ? json_decode(file_get_contents("attempts.json"), true)
     : [];
 ?>
