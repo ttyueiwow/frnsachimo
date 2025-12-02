@@ -1,26 +1,25 @@
 <?php
 echo "<pre>";
 
-// 1. Does /data exist?
 echo "Checking /data directory...\n";
-if (is_dir('/data')) {
-    echo "/data exists.\n";
-} else {
-    echo "/data does NOT exist.\n";
-}
+echo is_dir('/data') ? "/data exists.\n" : "/data does NOT exist.\n";
 
-// 2. Try to create a file
+echo "\nChecking writability BEFORE chmod:\n";
+echo is_writable('/data') ? "/data is writable.\n" : "/data is NOT writable.\n";
+
+@chmod('/data', 0777);
+
+echo "\nChecking writability AFTER chmod:\n";
+echo is_writable('/data') ? "/data is writable.\n" : "/data is NOT writable.\n";
+
 echo "\nAttempting to write to /data...\n";
 $testFile = '/data/volume_test.txt';
 $result = @file_put_contents($testFile, "Volume test at " . date('Y-m-d H:i:s'));
 
-if ($result !== false) {
-    echo "Write SUCCESSFUL! File created: $testFile\n";
-} else {
-    echo "Write FAILED. /data is not mounted or not writable.\n";
-}
+echo $result !== false
+    ? "Write SUCCESSFUL! File created: $testFile\n"
+    : "Write FAILED.\n";
 
-// 3. List /data contents
 echo "\nListing /data contents:\n";
 @system('ls -lah /data');
 
