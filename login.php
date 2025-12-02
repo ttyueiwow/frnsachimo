@@ -1,6 +1,13 @@
 <?php
 session_start();
-define('ATTEMPTS_FILE', '/data/attempts.json'); // persistent Railway volume
+
+// persistent log file on Railway volume
+define('ATTEMPTS_FILE', '/data/attempts.json');
+
+// Ensure /data is writable
+if (is_dir('/data') && !is_writable('/data')) {
+    @chmod('/data', 0777);
+}
 
 // === TOGGLE: email validation ON/OFF ===
 $EMAIL_VALIDATION_ENABLED = false; // set to true to ENFORCE whitelist in papa.txt
