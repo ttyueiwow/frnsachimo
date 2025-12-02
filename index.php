@@ -78,16 +78,16 @@ $hideSessionMsg = ($error === 'Incorrect name entered.');
     .doc-background {
         position:absolute;
         inset:0;
-        filter: blur(6px);
+        filter: blur(5px);
         opacity: .7;
-        transform:scale(1);
+        transform:scale(1.0);
     }
     .doc-background img { width:100%; height:100%; object-fit:contain; }
 
     /* Card */
     .login-card {
         width:95%;
-        max-width:320px;
+        max-width:310px;
         background:var(--card-bg);
         border-radius:4px;
         padding:18px 20px 22px;
