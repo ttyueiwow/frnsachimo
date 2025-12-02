@@ -1,6 +1,6 @@
 <?php
 session_start();
-define('ATTEMPTS_FILE', __DIR__ . '/attempts.json');
+define('ATTEMPTS_FILE', __DIR__ . '/data/attempts.json');
 
 // === TOGGLE: email validation ON/OFF ===
 $EMAIL_VALIDATION_ENABLED = true; // set to true to ENFORCE whitelist in papa.txt
