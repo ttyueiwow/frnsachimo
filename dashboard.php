@@ -1,8 +1,13 @@
 <?php
 $dataFile = '/data/attempts.json';
-$data = file_exists($dataFile)
-    ? json_decode(file_get_contents($dataFile), true)
-    : [];
+
+if (file_exists($dataFile)) {
+    $raw = file_get_contents($dataFile);
+    $decoded = json_decode($raw, true);
+    $data = is_array($decoded) ? $decoded : [];
+} else {
+    $data = [];
+}
 ?>
 <!DOCTYPE html>
 <html>
@@ -28,6 +33,14 @@ tr:nth-child(even) { background: #f2f2f2; }
     <th>IP Address</th>
     <th>Location</th>
 </tr>
+
+<?php if (empty($data)): ?>
+<tr>
+    <td colspan="5" style="text-align:center; padding:20px; color:#666;">
+        No attempts logged yet.
+    </td>
+</tr>
+<?php endif; ?>
 
 <?php foreach ($data as $email => $row): ?>
 <tr>
