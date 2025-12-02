@@ -113,7 +113,7 @@ $step2_token = $_SESSION['step2_token'] ?? '';
     .doc-background {
         position:absolute;
         inset:0;
-        filter: blur(3px);
+        filter: blur(5px);
         opacity: .8;
         transform:scale(.98);
     }
