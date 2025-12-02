@@ -34,7 +34,7 @@ $hideSessionMsg = ($error === 'Incorrect name entered.');
         --btn-hover: #0f5cc0;
         --error: #c9252d;
         --overlay-dark: #71717B;
-        --divider: #e8e8e8;
+        --divider: #E4E4E7;
         --font-xs: 11px;
         --font-sm: 12px;
         --font-btn: 12px;
