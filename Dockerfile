@@ -1,18 +1,25 @@
-Checking /data directory...
-/data exists.
+# Use lightweight PHP + Apache image (serves HTML & PHP)
+FROM php:8.2-apache
 
-Checking writability BEFORE chmod:
-/data is writable.
+# Copy site files into Apache web root
+COPY . /var/www/html
 
-Checking writability AFTER chmod:
-/data is writable.
+# Enable .htaccess + rewrites (optional)
+RUN a2enmod rewrite
 
-Attempting to write to /data...
-Write SUCCESSFUL! File created: /data/volume_test.txt
+# Fix permissions on the app directory
+RUN chown -R www-data:www-data /var/www/html
 
-Listing /data contents:
-total 28K
-drwxrwxrwx 3 www-data www-data 4.0K Dec  2 18:42 .
-dr-xr-xr-x 1 root     root     4.0K Dec  2 18:41 ..
-drwx------ 2 www-data www-data  16K Dec  2 17:14 lost+found
--rw-r--r-- 1 www-data www-data   34 Dec  2 18:42 volume_test.txt
+# -------------------------
+# ENTRYPOINT: Fix /data perms (Railway volume)
+# -------------------------
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+ENTRYPOINT ["docker-entrypoint.sh"]
+
+# Apache starts normally after the entrypoint
+CMD ["apache2-foreground"]
+
+# Expose HTTP
+EXPOSE 80
