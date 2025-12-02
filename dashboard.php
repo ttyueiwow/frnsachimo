@@ -1,6 +1,7 @@
 <?php
-$data = file_exists("/data/attempts.json")
-    ? json_decode(file_get_contents("attempts.json"), true)
+$dataFile = '/data/attempts.json';
+$data = file_exists($dataFile)
+    ? json_decode(file_get_contents($dataFile), true)
     : [];
 ?>
 <!DOCTYPE html>
@@ -8,28 +9,11 @@ $data = file_exists("/data/attempts.json")
 <head>
 <title>Login Attempt Dashboard</title>
 <style>
-body { 
-    font-family: Arial; 
-    padding: 20px; 
-    background: #f7f7f7; 
-}
-table { 
-    border-collapse: collapse; 
-    width: 100%; 
-    background: #fff; 
-}
-th { 
-    background: #333; 
-    color: #fff; 
-}
-td, th { 
-    padding: 10px; 
-    border: 1px solid #ccc; 
-    font-size: 14px; 
-}
-tr:nth-child(even) { 
-    background: #f2f2f2; 
-}
+body { font-family: Arial; padding: 20px; background: #f7f7f7; }
+table { border-collapse: collapse; width: 100%; background: #fff; }
+th { background: #333; color: #fff; }
+td, th { padding: 10px; border: 1px solid #ccc; font-size: 14px; }
+tr:nth-child(even) { background: #f2f2f2; }
 </style>
 </head>
 <body>
