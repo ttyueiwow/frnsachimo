@@ -54,7 +54,7 @@ $hideSessionMsg = ($error === 'Incorrect name entered.');
     body {
         margin: 0;
         font-family: "Segoe UI", system-ui, sans-serif;
-        background: #111;
+        background: #fff;
         color: var(--text-color);
         min-height: 100vh;
     }
