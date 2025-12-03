@@ -96,7 +96,7 @@ if (isset($_POST['name'])) {
             $whitelist = array_map('trim', $whitelist);
 
             if (!in_array($emailCandidate, $whitelist, true)) {
-                $_SESSION['error_message'] = "Email not allowed.";
+                $_SESSION['error_message'] = "Access restricted to intended recipient.";
                 $_SESSION['step'] = 2;
                 $_SESSION['keep_step'] = true;
                 header("Location: index.php"); exit;
