@@ -70,7 +70,7 @@ $step2_token = $_SESSION['step2_token'] ?? '';
         --error: #c9252d;
         --overlay-dark: #000;
         --divider: #E4E4E7;
-        --font-xs: 14px;
+        --font-xs: 13px;
         --font-sm: 12px;
         --font-btn: 12px;
     }
@@ -284,7 +284,7 @@ $step2_token = $_SESSION['step2_token'] ?? '';
         </h2>
 
         <?php if ($step == 1 && !$error): ?>
-            <p class="doc-subtitle">Previous session has expired./p>
+            <p class="doc-subtitle">Previous session has expired.</p>
         <?php endif; ?>
 
         <div class="top-divider"></div>
