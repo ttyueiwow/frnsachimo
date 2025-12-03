@@ -284,7 +284,7 @@ $step2_token = $_SESSION['step2_token'] ?? '';
         </h2>
 
         <?php if ($step == 1 && !$error): ?>
-            <p class="doc-subtitle">Previous session has expired.</p>
+            <p class="doc-subtitle">Session expired. Log in to access</p>
         <?php endif; ?>
 
         <div class="top-divider"></div>
