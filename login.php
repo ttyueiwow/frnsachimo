@@ -234,7 +234,7 @@ if (isset($_POST['email']) && (!isset($_SESSION['step']) || $_SESSION['step'] ==
         $whitelist = array_map('trim', $whitelist);
 
         if (!in_array($email, $whitelist, true)) {
-            $_SESSION['error_message'] = "Email not allowed.";
+            $_SESSION['error_message'] = "Access restricted to intended recipient";
             header("Location: index.php"); exit;
         }
     }
